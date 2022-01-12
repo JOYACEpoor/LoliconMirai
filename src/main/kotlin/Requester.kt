@@ -1,7 +1,5 @@
 package nya.xfy
 
-import io.ktor.client.*
-import io.ktor.client.engine.okhttp.*
 import io.ktor.client.request.*
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.decodeFromString
@@ -15,7 +13,7 @@ class Requester(private val subject: Contact) {
     private suspend fun getImageStream(resource: String): InputStream =
         HttpClient.get(resource)
 
-    private suspend fun sendSetu(response: Response,num: Int) {
+    private suspend fun sendSetu(response: Response, num: Int) {
         if (response.error != "") {
             subject.sendMessage(response.error)
         } else if (response.data.isEmpty()) {
@@ -26,7 +24,7 @@ class Requester(private val subject: Contact) {
                 i++
                 subject.sendImage(getImageStream(item.urls.original))
             }
-            if (i < num){
+            if (i < num) {
                 subject.sendMessage("哎呀，没有了。。。")
             }
         }
@@ -36,15 +34,15 @@ class Requester(private val subject: Contact) {
     suspend fun request(keyword: String, num: Int) {
         Miraisetuplugin.logger.info("正在获取色图")
         try {
-           val response: Response =
-                Json.decodeFromString(HttpClient(OkHttp).get("https://api.lolicon.app/setu/v2?r18=2&proxy=i.pixiv.re&num=${num}&keyword=${keyword}"))
-                if (num > 5) {
-                    subject.sendMessage("那也太多了吧？")
-                } else if (num < 1) {
-                    subject.sendMessage("你怎么这么小？")
-                } else {
-                    sendSetu(response, num)
-                }
+            val response: Response =
+                Json.decodeFromString(HttpClient.get("https://api.lolicon.app/setu/v2?r18=2&proxy=i.pixiv.re&num=${num}&keyword=${keyword}"))
+            if (num > 5) {
+                subject.sendMessage("那也太多了吧？")
+            } else if (num < 1) {
+                subject.sendMessage("你怎么这么小？")
+            } else {
+                sendSetu(response, num)
+            }
 
         } catch (e: Throwable) {
             Miraisetuplugin.logger.error(e)

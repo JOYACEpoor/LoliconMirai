@@ -5,9 +5,9 @@ import net.mamoe.mirai.event.subscribeMessages
 
 fun listenerRegister() {
     Miraisetuplugin.globalEventChannel().subscribeMessages {
-        finding(Regex("""来(\d)*张(.*)色图""")){
+        finding(Regex("""来(\d)*张(.*)色图""")) {
             val number = it.groups[1]?.value?.toIntOrNull() ?: 1
-            if(it.groups[2] != null) Miraisetuplugin.logger.info(
+            if (it.groups[2] != null) Miraisetuplugin.logger.info(
                 "Keyword: ${it.groupValues[2]}}"
             )
             Miraisetuplugin.logger.info(
