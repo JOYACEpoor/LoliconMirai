@@ -1,21 +1,22 @@
 package nya.xfy
 
-import net.mamoe.mirai.event.GlobalEventChannel
-import net.mamoe.mirai.event.events.MessageEvent
+import net.mamoe.mirai.event.globalEventChannel
+import net.mamoe.mirai.event.subscribeMessages
 
 fun listenerRegister() {
-    GlobalEventChannel.subscribeAlways<MessageEvent> {
-        if (message.contentToString().contains("[来]\\d*[张].*[色图]".toRegex())) {
-            Miraisetuplugin.logger.info(
-                "Keyword:" + message.contentToString().replace("[来]\\d*[张]".toRegex(), "").replace("[色图]".toRegex(), "")
+    Miraisetuplugin.globalEventChannel().subscribeMessages {
+        finding(Regex("""来(\d)*张(.*)色图""")){
+            val number = it.groups[1]?.value?.toIntOrNull() ?: 1
+            if(it.groups[2] != null) Miraisetuplugin.logger.info(
+                "Keyword: ${it.groupValues[2]}}"
             )
             Miraisetuplugin.logger.info(
-                "Nums:" + message.contentToString().replace("[来]".toRegex(), "").replace("[张].*[色图]".toRegex(), "")
+                "Nums: ${it.groupValues[1]}"
             )
             val setu = Requester(subject)
             setu.request(
-                message.contentToString().replace("[来]\\d*[张]".toRegex(), "").replace("[色图]".toRegex(), ""),
-                message.contentToString().replace("[来]".toRegex(), "").replace("[张].*[色图]".toRegex(), "")
+                it.groups[2]?.value ?: "",
+                number
             )
         }
     }
