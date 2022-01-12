@@ -16,6 +16,22 @@ class Requester(private val subject: Contact) {
     private suspend fun getImageStream(resource: String): InputStream =
         HttpClient(OkHttp).get(resource)
 
+    private suspend fun sendSetu(response: Response,num: String) {
+        if (response.error != "") {
+            subject.sendMessage(response.error)
+        } else if (response.data.isEmpty()) {
+            subject.sendMessage("你的xp好奇怪啊。。。")
+        } else {
+            var i =0
+            for (item in response.data) {
+                i++
+                subject.sendImage(getImageStream(item.urls.original))
+            }
+            if(i<num.toInt()){
+                subject.sendMessage("哎呀，没有了。。。")
+            }
+        }
+    }
     private suspend fun sendSetu(response: Response) {
         if (response.error != "") {
             subject.sendMessage(response.error)
@@ -40,7 +56,7 @@ class Requester(private val subject: Contact) {
                 } else if (num.toInt() < 1) {
                     subject.sendMessage("你怎么这么小？")
                 } else {
-                    sendSetu(response)
+                    sendSetu(response,num)
                 }
             } else {
                 sendSetu(response)

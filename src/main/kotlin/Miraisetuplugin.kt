@@ -7,7 +7,7 @@ import net.mamoe.mirai.utils.info
 object Miraisetuplugin : KotlinPlugin(
     JvmPluginDescription(
         id = "nya.xfy.miraisetuplugin",
-        version = "1.0",
+        version = "1.0.1",
     )
 ) {
     override fun onEnable() {
