@@ -1,8 +1,12 @@
 package nya.xfy
 
+import io.ktor.client.*
+import io.ktor.client.engine.*
+import io.ktor.client.engine.okhttp.*
 import net.mamoe.mirai.console.plugin.jvm.JvmPluginDescription
 import net.mamoe.mirai.console.plugin.jvm.KotlinPlugin
 import net.mamoe.mirai.utils.info
+import java.util.concurrent.TimeUnit
 
 object Miraisetuplugin : KotlinPlugin(
     JvmPluginDescription(
@@ -14,8 +18,11 @@ object Miraisetuplugin : KotlinPlugin(
         logger.info { "Plugin loaded" }
         listenerRegister()
     }
+}
 
-    override fun onDisable() {
-        super.onDisable()
+private val okHttp = OkHttp.config {
+    config {
+        readTimeout(30, TimeUnit.SECONDS)
     }
 }
+val HttpClient = HttpClient(okHttp)
