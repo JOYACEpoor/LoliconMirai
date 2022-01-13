@@ -24,41 +24,51 @@ class Requester(private val subject: Contact) {
     @OptIn(ExperimentalSerializationApi::class)
     suspend fun request(keyword: String, num: Int) {
         val url = "https://api.lolicon.app/setu/v2?r18=2&proxy=i.pixiv.re&num=${num}&keyword=${keyword}"
-        if (getResponseCode(url) != 200) {
-            subject.sendMessage("Api好像连不上了，待会再试试看吧？")
-            Miraisetuplugin.logger.error("url: $url")
-            Miraisetuplugin.logger.error("responseCode: ${getResponseCode(url)}")
-        } else {
-            if (num > 5 || num < 1) {
-                if (num < 1)
-                    subject.sendMessage("你真小")
-                if (num > 5)
-                    subject.sendMessage("太大了吧！！怎么看都进不去吧！")
-            } else
-                sendSetu(
-                    Json.decodeFromString(
-                        okHttpClient.newCall(Request.Builder().url(url).build()).execute().body?.string()!!
-                    ), num
-                )
+        try {
+            if (getResponseCode(url) != 200) {
+                subject.sendMessage("Api好像连不上了，待会再试试看吧？")
+                Miraisetuplugin.logger.error("url: $url")
+                Miraisetuplugin.logger.error("responseCode: ${getResponseCode(url)}")
+            } else {
+                if (num > 5 || num < 1) {
+                    if (num < 1)
+                        subject.sendMessage("你真小")
+                    if (num > 5)
+                        subject.sendMessage("太大了吧！！怎么看都进不去吧！")
+                } else
+                    sendSetu(
+                        Json.decodeFromString(
+                            okHttpClient.newCall(Request.Builder().url(url).build()).execute().body?.string()!!
+                        ), num
+                    )
+            }
+        } catch (e: Throwable) {
+            subject.sendMessage("$e")
+            Miraisetuplugin.logger.error(e)
         }
     }
 
     private suspend fun sendSetu(response: Response, num: Int) {
+        try {
         if (response.error != "")
             subject.sendMessage(response.error)
         else if (response.data.isEmpty())
             subject.sendMessage("你的xp好奇怪啊。。。")
         else {
-            var i = 0
-            for (item in response.data) {
-                i++
-                if (getResponseCode(item.urls.original) != 200)
-                    subject.sendMessage("PID: ${item.pid}无法访问，可能已经被删除")
-                else
-                    subject.sendImage(getImgInputStream(item.urls.original))
+                var i = 0
+                for (item in response.data) {
+                    i++
+                    if (getResponseCode(item.urls.original) != 200)
+                        subject.sendMessage("PID: ${item.pid}无法访问，可能已经被删除")
+                    else
+                        subject.sendImage(getImgInputStream(item.urls.original))
+                }
+                if (i < num)
+                    subject.sendMessage("哎呀，没有了。。。")
             }
-            if (i < num)
-                subject.sendMessage("哎呀，没有了。。。")
+        }catch (e: Throwable) {
+            subject.sendMessage("$e")
+            Miraisetuplugin.logger.error(e)
         }
     }
 }
