@@ -21,19 +21,15 @@ object Miraisetuplugin : KotlinPlugin(
     }
 
     private fun listener() {
-        try {
-            Miraisetuplugin.globalEventChannel().subscribeMessages {
-                finding(Regex("""来(\d*)张(.*)色图""")) {
-                    Miraisetuplugin.logger.info("正在获取色图")
-                    if ((it.groups[2] != null) && (it.groupValues[2] != ""))
-                        Miraisetuplugin.logger.info("keyword: ${it.groupValues[2]}")
-                    if ((it.groups[1] != null) && (it.groupValues[1] != ""))
-                        Miraisetuplugin.logger.info("num: ${it.groupValues[1].toIntOrNull() ?: 1}")
-                    Requester(subject).request(it.groupValues[2], it.groupValues[1].toIntOrNull() ?: 1)
-                }
+        Miraisetuplugin.globalEventChannel().subscribeMessages {
+            finding(Regex("""来(\d*)张(.*)色图""")) {
+                Miraisetuplugin.logger.info("正在获取色图")
+                if ((it.groups[2] != null) && (it.groupValues[2] != ""))
+                    Miraisetuplugin.logger.info("keyword: ${it.groupValues[2]}")
+                if ((it.groups[1] != null) && (it.groupValues[1] != ""))
+                    Miraisetuplugin.logger.info("num: ${it.groupValues[1].toIntOrNull() ?: 1}")
+                Requester(subject).request(it.groupValues[2], it.groupValues[1].toIntOrNull() ?: 1)
             }
-        }catch (e:Throwable){
-            Miraisetuplugin.logger.error(e)
         }
     }
 }
