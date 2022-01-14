@@ -44,7 +44,7 @@ class Requester(private val subject: Contact) {
                             if (response.code == 200) {
                                 response.body?.let { it1 -> subject.sendImage(it1.byteStream()) }
                             } else {
-                                subject.sendMessage("图片已经被删除，获取失败")
+                                subject.sendMessage("图片pid: ${item.pid}已经被删除，获取失败")
                             }
                         }
                     }
