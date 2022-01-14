@@ -10,7 +10,7 @@ import net.mamoe.mirai.utils.info
 object Miraisetuplugin : KotlinPlugin(
     JvmPluginDescription(
         id = "nya.xfy.miraisetuplugin",
-        version = "1.2.0",
+        version = "1.2.1",
     )
 ) {
     override fun onEnable() {
@@ -23,12 +23,15 @@ object Miraisetuplugin : KotlinPlugin(
     private fun listener() {
         Miraisetuplugin.globalEventChannel().subscribeMessages {
             finding(Regex("""来(\d*)张(.*)色图""")) {
-                Miraisetuplugin.logger.info("正在获取色图")
                 if ((it.groups[2] != null) && (it.groupValues[2] != ""))
                     Miraisetuplugin.logger.info("keyword: ${it.groupValues[2]}")
                 if ((it.groups[1] != null) && (it.groupValues[1] != ""))
                     Miraisetuplugin.logger.info("num: ${it.groupValues[1].toIntOrNull() ?: 1}")
-                Requester(subject).request(it.groupValues[2], it.groupValues[1].toIntOrNull() ?: 1)
+                val okHttpClient=initOkHttpClient()
+                Miraisetuplugin.logger.info("正在获取色图")
+                Requester(subject).request(okHttpClient,it.groupValues[2], it.groupValues[1].toIntOrNull() ?: 1)
+                closeOkHttpClient(okHttpClient)
+                Miraisetuplugin.logger.info { "OkHttpClient Closed" }
             }
         }
     }
