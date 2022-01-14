@@ -5,7 +5,6 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import net.mamoe.mirai.contact.Contact
 import net.mamoe.mirai.contact.Contact.Companion.sendImage
-import okhttp3.OkHttpClient
 import okhttp3.Request
 
 class Requester(private val subject: Contact) {
@@ -32,6 +31,7 @@ class Requester(private val subject: Contact) {
                         ), num
                     )
             }
+            closeOkHttpClient()
         } catch (e: Throwable) {
             subject.sendMessage("哎呀，出错了，待会再试试吧？")
             Miraisetuplugin.logger.error(e)
@@ -60,6 +60,7 @@ class Requester(private val subject: Contact) {
                 if (i < num)
                     subject.sendMessage("哎呀，没有了。。。")
             }
+            closeOkHttpClient()
         }catch (e: Throwable) {
             subject.sendMessage("哎呀，出错了，待会再试试吧？")
             Miraisetuplugin.logger.error(e)
