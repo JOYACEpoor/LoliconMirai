@@ -9,60 +9,57 @@ import okhttp3.Request
 
 class Requester(private val subject: Contact) {
 
-    @OptIn(ExperimentalSerializationApi::class)
-    suspend fun request(okHttpClient:OkHttpClient,keyword: String, num: Int) {
-        val url = "https://api.lolicon.app/setu/v2?r18=2&proxy=i.pixiv.re&num=${num}&keyword=${keyword}"
-        try {
-            val responseCode: Int = okHttpClient.newCall(Request.Builder().url(url).build()).execute().code
-            if (responseCode != 200) {
-                subject.sendMessage("Api好像连不上了，待会再试试看吧？")
-                Miraisetuplugin.logger.error("url: $url")
-                Miraisetuplugin.logger.error("responseCode: $responseCode")
-            } else {
-                if (num > 5 || num < 1) {
-                    if (num < 1)
-                        subject.sendMessage("你真小")
-                    if (num > 5)
-                        subject.sendMessage("太大了吧！！怎么看都进不去吧！")
-                } else
-                    sendSetu(okHttpClient,
-                        Json.decodeFromString(
-                            okHttpClient.newCall(Request.Builder().url(url).build()).execute().body?.string()!!
-                        ), num
-                    )
-            }
-            closeOkHttpClient()
-        } catch (e: Throwable) {
-            subject.sendMessage("哎呀，出错了，待会再试试吧？")
-            Miraisetuplugin.logger.error(e)
-        }
-    }
+    private lateinit var request: Request
+    private lateinit var response: okhttp3.Response
+    private lateinit var url: String
 
-    private suspend fun sendSetu(okHttpClient:OkHttpClient,response: Response, num: Int) {
+    @OptIn(ExperimentalSerializationApi::class)
+    suspend fun request(keyword: String, num: Int) {
         try {
-        if (response.error != "")
-            subject.sendMessage(response.error)
-        else if (response.data.isEmpty())
-            subject.sendMessage("你的xp好奇怪啊。。。")
-        else {
-                var i = 0
-                for (item in response.data) {
-                    i++
-                    if (okHttpClient.newCall(Request.Builder().url(item.urls.original).build()).execute().code != 200)
-                        subject.sendMessage("PID: ${item.pid}无法访问，可能已经被删除")
-                    else {
-                        subject.sendImage(
-                            okHttpClient.newCall(Request.Builder().url(item.urls.original).build())
-                                .execute().body!!.byteStream()
-                        )
-                    }
+            url = "https://api.lolicon.app/setu/v2?r18=2&proxy=i.pixiv.re&num=${num}&keyword=${keyword}"
+            if(num in 1..5){
+                request = Request.Builder().let {
+                    it.url(url)
+                    it.build()
                 }
-                if (i < num)
-                    subject.sendMessage("哎呀，没有了。。。")
+                response = okHttpClient.newCall(request).execute()
+                if(response.code == 200) {
+                    val response: Response = Json.decodeFromString(response.body!!.string())
+                    if (response.error != "") {
+                        subject.sendMessage("请求api时出错了，要不待会在试试？api错误信息${response.error}")
+                    } else if (response.data.isEmpty()) {
+                        subject.sendMessage("你的xp好奇怪。。。")
+                    } else {
+                        if (response.data.lastIndex + 1 < num) {
+                            subject.sendMessage("关于[${keyword}]的图片只有${response.data.lastIndex + 1}张。")
+                        }
+                        for (item in response.data) {
+                            request = Request.Builder().let {
+                                it.url(item.urls.original)
+                                //it.header("Referer","https://www.pixiv.net/")
+                                //it.header("User-Agent","Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36")
+                                it.build()
+                            }
+                            val response: okhttp3.Response = okHttpClient.newCall(request).execute()
+                            if (response.code == 200) {
+                                response.body?.let { it1 -> subject.sendImage(it1.byteStream()) }
+                            } else {
+                                subject.sendMessage("图片已经被删除，获取失败")
+                            }
+                        }
+                    }
+                }else{
+                    subject.sendMessage("请求api出错，请检查网络问题")
+                }
+            }else if(num<1){
+                subject.sendMessage("你真小！！")
+            }else if(num>5){
+                subject.sendMessage("进不去！怎么看都进不去吧！！！")
+            }else{
+                subject.sendMessage("杰哥，这是什么啊？(疑惑状")
             }
-            closeOkHttpClient()
-        }catch (e: Throwable) {
-            subject.sendMessage("哎呀，出错了，待会再试试吧？")
+        } catch (e: Throwable) {
+            subject.sendMessage("哎呀，出错了。。。")
             Miraisetuplugin.logger.error(e)
         }
     }
