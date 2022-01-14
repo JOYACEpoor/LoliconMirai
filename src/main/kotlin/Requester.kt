@@ -5,18 +5,36 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import net.mamoe.mirai.contact.Contact
 import net.mamoe.mirai.contact.Contact.Companion.sendImage
+import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.net.SocketTimeoutException
+import java.util.concurrent.TimeUnit
 
 class Requester(private val subject: Contact) {
 
     private lateinit var request: Request
     private lateinit var response: okhttp3.Response
     private lateinit var url: String
+    private lateinit var okHttpClient: OkHttpClient
 
+    private fun initOkHttpClient() {
+        okHttpClient = OkHttpClient.Builder().let {
+            it.readTimeout(5, TimeUnit.SECONDS)
+            it.writeTimeout(5, TimeUnit.SECONDS)
+            it.connectTimeout(5, TimeUnit.SECONDS)
+            it.build()
+        }
+    }
+
+    private fun closeOkHttpClient() {
+        okHttpClient.dispatcher.executorService.shutdown()
+        okHttpClient.connectionPool.evictAll()
+        okHttpClient.cache?.close()
+    }
     @OptIn(ExperimentalSerializationApi::class)
     suspend fun request(keyword: String, num: Int) {
         try {
+            initOkHttpClient()
             url = "https://api.lolicon.app/setu/v2?r18=2&proxy=i.pixiv.re&num=${num}&keyword=${keyword}"
             if(num in 1..5){
                 request = Request.Builder().let {
@@ -61,9 +79,12 @@ class Requester(private val subject: Contact) {
             }
         } catch (e: SocketTimeoutException) {
             subject.sendMessage("请求超时了，等等再试试吧？")
+            Miraisetuplugin.logger.error(e)
         } catch (e: Throwable) {
             subject.sendMessage("哎呀，出错了。。。")
             Miraisetuplugin.logger.error(e)
+        }finally {
+            closeOkHttpClient()
         }
     }
 }

@@ -15,16 +15,9 @@ object Miraisetuplugin : KotlinPlugin(
 ) {
     override fun onEnable() {
         logger.info { "Plugin loaded" }
-        initOkHttpClient()
         launch {
             listener()
         }
-    }
-
-    override fun onDisable() {
-        closeOkHttpClient()
-        Miraisetuplugin.logger.info { "OkHttpClient Closed" }
-        super.onDisable()
     }
 
     private fun listener() {
