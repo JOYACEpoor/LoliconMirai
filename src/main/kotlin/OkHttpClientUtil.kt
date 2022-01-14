@@ -7,9 +7,9 @@ internal lateinit var okHttpClient: OkHttpClient
 
 internal fun initOkHttpClient() {
     okHttpClient = OkHttpClient.Builder().let {
-        it.readTimeout(30, TimeUnit.SECONDS)
-        it.writeTimeout(30, TimeUnit.SECONDS)
-        it.connectTimeout(30, TimeUnit.SECONDS)
+        it.readTimeout(5, TimeUnit.SECONDS)
+        it.writeTimeout(5, TimeUnit.SECONDS)
+        it.connectTimeout(5, TimeUnit.SECONDS)
         it.build()
     }
 }

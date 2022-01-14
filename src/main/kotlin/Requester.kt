@@ -6,6 +6,7 @@ import kotlinx.serialization.json.Json
 import net.mamoe.mirai.contact.Contact
 import net.mamoe.mirai.contact.Contact.Companion.sendImage
 import okhttp3.Request
+import java.net.SocketTimeoutException
 
 class Requester(private val subject: Contact) {
 
@@ -44,20 +45,22 @@ class Requester(private val subject: Contact) {
                             if (response.code == 200) {
                                 response.body?.let { it1 -> subject.sendImage(it1.byteStream()) }
                             } else {
-                                subject.sendMessage("图片已经被删除，获取失败")
+                                subject.sendMessage("图片pid: ${item.pid}已经被删除，获取失败")
                             }
                         }
                     }
-                }else{
+                } else {
                     subject.sendMessage("请求api出错，请检查网络问题")
                 }
-            }else if(num<1){
+            } else if (num < 1) {
                 subject.sendMessage("你真小！！")
-            }else if(num>5){
+            } else if (num > 5) {
                 subject.sendMessage("进不去！怎么看都进不去吧！！！")
-            }else{
+            } else {
                 subject.sendMessage("杰哥，这是什么啊？(疑惑状")
             }
+        } catch (e: SocketTimeoutException) {
+            subject.sendMessage("请求超时了，等等再试试吧？")
         } catch (e: Throwable) {
             subject.sendMessage("哎呀，出错了。。。")
             Miraisetuplugin.logger.error(e)
