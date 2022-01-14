@@ -5,30 +5,19 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import net.mamoe.mirai.contact.Contact
 import net.mamoe.mirai.contact.Contact.Companion.sendImage
-import okhttp3.OkHttpClient
 import okhttp3.Request
-import java.io.InputStream
-import java.util.concurrent.TimeUnit
 
 class Requester(private val subject: Contact) {
-
-    private val okHttpClient: OkHttpClient = OkHttpClient.Builder().readTimeout(30, TimeUnit.SECONDS)
-        .writeTimeout(30, TimeUnit.SECONDS).connectTimeout(30, TimeUnit.SECONDS).build()
-
-    private fun getResponseCode(url: String): Int =
-        okHttpClient.newCall(Request.Builder().url(url).build()).execute().code
-
-    private fun getImgInputStream(url: String): InputStream =
-        okHttpClient.newCall(Request.Builder().url(url).build()).execute().body!!.byteStream()
 
     @OptIn(ExperimentalSerializationApi::class)
     suspend fun request(keyword: String, num: Int) {
         val url = "https://api.lolicon.app/setu/v2?r18=2&proxy=i.pixiv.re&num=${num}&keyword=${keyword}"
         try {
-            if (getResponseCode(url) != 200) {
+            val responseCode: Int = okHttpClient.newCall(Request.Builder().url(url).build()).execute().code
+            if (responseCode != 200) {
                 subject.sendMessage("Api好像连不上了，待会再试试看吧？")
                 Miraisetuplugin.logger.error("url: $url")
-                Miraisetuplugin.logger.error("responseCode: ${getResponseCode(url)}")
+                Miraisetuplugin.logger.error("responseCode: $responseCode")
             } else {
                 if (num > 5 || num < 1) {
                     if (num < 1)
@@ -42,6 +31,7 @@ class Requester(private val subject: Contact) {
                         ), num
                     )
             }
+            closeOkHttpClient()
         } catch (e: Throwable) {
             subject.sendMessage("哎呀，出错了，待会再试试吧？")
             Miraisetuplugin.logger.error(e)
@@ -58,14 +48,19 @@ class Requester(private val subject: Contact) {
                 var i = 0
                 for (item in response.data) {
                     i++
-                    if (getResponseCode(item.urls.original) != 200)
+                    if (okHttpClient.newCall(Request.Builder().url(item.urls.original).build()).execute().code != 200)
                         subject.sendMessage("PID: ${item.pid}无法访问，可能已经被删除")
-                    else
-                        subject.sendImage(getImgInputStream(item.urls.original))
+                    else {
+                        subject.sendImage(
+                            okHttpClient.newCall(Request.Builder().url(item.urls.original).build())
+                                .execute().body!!.byteStream()
+                        )
+                    }
                 }
                 if (i < num)
                     subject.sendMessage("哎呀，没有了。。。")
             }
+            closeOkHttpClient()
         }catch (e: Throwable) {
             subject.sendMessage("哎呀，出错了，待会再试试吧？")
             Miraisetuplugin.logger.error(e)

@@ -10,7 +10,7 @@ import net.mamoe.mirai.utils.info
 object Miraisetuplugin : KotlinPlugin(
     JvmPluginDescription(
         id = "nya.xfy.miraisetuplugin",
-        version = "1.2.0",
+        version = "1.2.1",
     )
 ) {
     override fun onEnable() {
@@ -18,6 +18,11 @@ object Miraisetuplugin : KotlinPlugin(
         launch {
             listener()
         }
+    }
+
+    override fun onDisable() {
+        closeOkHttpClient()
+        super.onDisable()
     }
 
     private fun listener() {
@@ -28,6 +33,7 @@ object Miraisetuplugin : KotlinPlugin(
                     Miraisetuplugin.logger.info("keyword: ${it.groupValues[2]}")
                 if ((it.groups[1] != null) && (it.groupValues[1] != ""))
                     Miraisetuplugin.logger.info("num: ${it.groupValues[1].toIntOrNull() ?: 1}")
+                initOkHttpClient()
                 Requester(subject).request(it.groupValues[2], it.groupValues[1].toIntOrNull() ?: 1)
             }
         }
