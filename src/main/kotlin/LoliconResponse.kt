@@ -3,7 +3,7 @@ package nya.xfy
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class Response(val error: String, val data: List<Data>) {
+data class LoliconResponse(val error: String, val data: List<Data>) {
     @Serializable
     data class Data(
         val pid: Int,
