@@ -1,98 +1,108 @@
 package nya.xfy
 
 import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import net.mamoe.mirai.contact.Contact
-import net.mamoe.mirai.contact.Contact.Companion.sendImage
+import net.mamoe.mirai.contact.Contact.Companion.uploadImage
+import net.mamoe.mirai.message.data.ForwardMessage
+import net.mamoe.mirai.message.data.PlainText
+import net.mamoe.mirai.message.data.buildForwardMessage
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import okhttp3.internal.closeQuietly
 import java.net.SocketException
 import java.net.SocketTimeoutException
 import java.util.concurrent.TimeUnit
 
 class LoliconRequester(private val subject: Contact) {
 
-    private lateinit var request: Request
     private lateinit var response: okhttp3.Response
-    private lateinit var url: String
-    private lateinit var okHttpClient: OkHttpClient
 
-    private fun initOkHttpClient() {
-        okHttpClient = OkHttpClient.Builder().let {
-            it.readTimeout(5, TimeUnit.SECONDS)
-            it.writeTimeout(5, TimeUnit.SECONDS)
-            it.connectTimeout(5, TimeUnit.SECONDS)
-            it.build()
-        }
+    private val okHttpClient: OkHttpClient = OkHttpClient.Builder().let {
+        it.readTimeout(5, TimeUnit.SECONDS)
+        it.writeTimeout(5, TimeUnit.SECONDS)
+        it.connectTimeout(5, TimeUnit.SECONDS)
+        it.build()
     }
 
-    private fun closeOkHttpClient() {
-        okHttpClient.let {
-            it.dispatcher.executorService.shutdown()
-            it.connectionPool.evictAll()
-            it.cache?.close()
+    @Serializable
+    private data class LoliconResponse(val error: String, val data: List<Data>) {
+        @Serializable
+        data class Data(
+            val pid: Int,
+            val p: Int,
+            val uid: Int,
+            val title: String,
+            val author: String,
+            val r18: Boolean,
+            val width: Int,
+            val height: Int,
+            val tags: MutableList<String>,
+            val ext: String,
+            val uploadDate: Long,
+            val urls: Urls
+        ) {
+            @Serializable
+            data class Urls(val original: String)
         }
     }
 
     @OptIn(ExperimentalSerializationApi::class)
-    suspend fun request(keyword: String, num: Int) {
+    suspend fun request(url: String, keyword: String, num: Int) {
         try {
-            initOkHttpClient()
-            url = "https://api.lolicon.app/setu/v2?r18=2&proxy=i.pixiv.re&num=${num}&keyword=${keyword}"
-            if (num < 1)
-                subject.sendMessage("你真小！！")
-            else if (num > 5)
-                subject.sendMessage("进不去！怎么看都进不去吧！！！")
-            else {
-                request = Request.Builder().let {
-                    it.url(url)
-                    it.build()
-                }
-                response = okHttpClient.newCall(request).execute()
-                if (response.code == 200) {
-                    val loliconResponse: LoliconResponse = Json.decodeFromString(response.body!!.string())
-                    if (loliconResponse.error != "")
-                        subject.sendMessage("请求api时出错了，要不待会在试试？api错误信息${loliconResponse.error}")
-                    else if (loliconResponse.data.isEmpty())
-                        subject.sendMessage("你的xp好奇怪。。。")
-                    else {
-                        if (loliconResponse.data.lastIndex + 1 < num)
-                            subject.sendMessage("关于“${keyword}”的图片只有${loliconResponse.data.lastIndex + 1}张。")
+            response = okHttpClient.newCall(Request.Builder().let {
+                it.url(url)
+                it.build()
+            }).execute()
+            if (response.code == 200) {
+                val loliconResponse: LoliconResponse = Json.decodeFromString(response.body!!.string())
+                if (loliconResponse.error != "") {
+                    subject.sendMessage("请求api时出错了，待会在试试？api错误信息${loliconResponse.error}")
+                } else if (loliconResponse.data.isEmpty()) {
+                    subject.sendMessage("你的xp好奇怪。。。")
+                } else {
+                    val forward = buildForwardMessage(subject, ForwardMessage.DisplayStrategy) {
+                        add(subject.id, "L",PlainText("${num}张${keyword}色图"))
                         for (item in loliconResponse.data) {
-                            request = Request.Builder().let {
+                            response = okHttpClient.newCall(Request.Builder().let {
                                 it.url(item.urls.original)
                                 //it.header("Referer","https://www.pixiv.net/")
                                 //it.header("User-Agent","Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36")
                                 it.build()
+                            }).execute()
+                            if (response.code == 200) {
+                                add(subject.id, "L", subject.uploadImage(response.body!!.byteStream()))
+                            } else {
+                                add(subject.id, "L", PlainText("该图片可能已经被删除，获取失败\n${item.urls.original}"))
                             }
-                            response = okHttpClient.newCall(request).execute()
-                            if (response.code == 200)
-                                response.body?.let { it1 -> subject.sendImage(it1.byteStream()) }
-                            else
-                                subject.sendMessage("图片可能已经被删除，获取失败\n${item.urls.original}")
                         }
-                        Miraisetuplugin.logger.info("${num}张${keyword}色图发送完成")
+                        if (loliconResponse.data.lastIndex + 1 < num)
+                            add(subject.id, "L",PlainText("关于“${keyword}”的图片只有${loliconResponse.data.lastIndex + 1}张。"))
                     }
-                } else subject.sendMessage("请求api出错，请检查网络问题")
+                    subject.sendMessage(forward)
+                    MiraiSetuPlugin.logger.info("${num}张${keyword}色图发送完成")
+                }
+            } else {
+                subject.sendMessage("请求api出错，请检查网络问题")
             }
         } catch (e: IllegalStateException) {
             subject.sendMessage("图片发送失败了，再试试看吧？")
-            Miraisetuplugin.logger.error(e)
+            MiraiSetuPlugin.logger.error(e)
         } catch (e: SocketTimeoutException) {
             subject.sendMessage("请求${keyword}色图时超时了，等等再试试吧？")
-            Miraisetuplugin.logger.error(e)
+            MiraiSetuPlugin.logger.error(e)
         } catch (e: SocketException) {
             subject.sendMessage("请求${keyword}色图时连接出错了，等等再试试吧？")
-            Miraisetuplugin.logger.error(e)
+            MiraiSetuPlugin.logger.error(e)
         } catch (e: Throwable) {
             subject.sendMessage("哎呀，出错了。。。")
-            Miraisetuplugin.logger.error(e)
-            Miraisetuplugin.logger.info("这是一个未处理的异常，如果方便的话请把错误提交给开发者吧qwq")
-        } finally {
-            response.closeQuietly()
-            closeOkHttpClient()
+            MiraiSetuPlugin.logger.error(e)
+        }finally {
+            response.close()
+            okHttpClient.dispatcher.executorService.shutdown()
+            okHttpClient.connectionPool.evictAll()
+            okHttpClient.cache?.close()
         }
     }
 }
