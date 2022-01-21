@@ -62,8 +62,7 @@ class LoliconRequester(private val subject: Contact) {
                 } else if (loliconResponse.data.isEmpty()) {
                     subject.sendMessage("你的xp好奇怪。。。")
                 } else {
-                    val forward = buildForwardMessage(subject, ForwardMessage.DisplayStrategy) {
-                        add(subject.id, "L",PlainText("${num}张${keyword}色图"))
+                    subject.sendMessage(buildForwardMessage(subject, ForwardMessage.DisplayStrategy) {
                         for (item in loliconResponse.data) {
                             response = okHttpClient.newCall(Request.Builder().let {
                                 it.url(item.urls.original)
@@ -71,16 +70,14 @@ class LoliconRequester(private val subject: Contact) {
                                 //it.header("User-Agent","Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36")
                                 it.build()
                             }).execute()
-                            if (response.code == 200) {
+                            if (response.code == 200)
                                 add(subject.id, "L", subject.uploadImage(response.body!!.byteStream()))
-                            } else {
-                                add(subject.id, "L", PlainText("该图片可能已经被删除，获取失败\n${item.urls.original}"))
-                            }
+                            else
+                                add(subject.id, "L", PlainText("此图片可能已经被删除，获取失败\n${item.urls.original}"))
                         }
                         if (loliconResponse.data.lastIndex + 1 < num)
                             add(subject.id, "L",PlainText("关于“${keyword}”的图片只有${loliconResponse.data.lastIndex + 1}张。"))
-                    }
-                    subject.sendMessage(forward)
+                    })
                     MiraiSetuPlugin.logger.info("${num}张${keyword}色图发送完成")
                 }
             } else {
@@ -88,13 +85,10 @@ class LoliconRequester(private val subject: Contact) {
             }
         } catch (e: IllegalStateException) {
             subject.sendMessage("图片发送失败了，再试试看吧？")
-            MiraiSetuPlugin.logger.error(e)
         } catch (e: SocketTimeoutException) {
             subject.sendMessage("请求${keyword}色图时超时了，等等再试试吧？")
-            MiraiSetuPlugin.logger.error(e)
         } catch (e: SocketException) {
             subject.sendMessage("请求${keyword}色图时连接出错了，等等再试试吧？")
-            MiraiSetuPlugin.logger.error(e)
         } catch (e: Throwable) {
             subject.sendMessage("哎呀，出错了。。。")
             MiraiSetuPlugin.logger.error(e)
