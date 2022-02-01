@@ -3,11 +3,11 @@ plugins {
     kotlin("jvm") version kotlinVersion
     kotlin("plugin.serialization") version kotlinVersion
 
-    id("net.mamoe.mirai-console") version "2.9.2"
+    id("net.mamoe.mirai-console") version "2.10.0-RC2"
 }
 
 group = "nya.xfy"
-version = "1.4.1"
+version = "1.4.2"
 
 repositories {
     maven("https://maven.aliyun.com/repository/public")
