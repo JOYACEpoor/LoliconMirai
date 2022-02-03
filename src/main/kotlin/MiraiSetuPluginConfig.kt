@@ -4,7 +4,8 @@ import net.mamoe.mirai.console.data.AutoSavePluginConfig
 import net.mamoe.mirai.console.data.value
 
 object MiraiSetuPluginConfig : AutoSavePluginConfig("config") {
-    val friendSetu:Boolean by value(true)
-    val groupSetu:Boolean by value(true)
+    val friendSetuSwitch:Boolean by value(true)
+    val groupSetuSwitch:Boolean by value(true)
+    val recallTime:Int by value(-1)
     val botOwnerId: List<Long> by value()
 }
