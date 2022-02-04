@@ -49,7 +49,7 @@ object MiraiSetuPlugin : KotlinPlugin(JvmPluginDescription(id = "nya.xfy.miraise
                             in 1..5 -> {
                                 logger.info("正在获取${it.groupValues[1].toIntOrNull() ?: 1}张${it.groupValues[2]}色图")
                                 when (recallTime) {
-                                    in 1..120 -> subject.sendMessage(LoliconRequester().request(groupR18Map, subject, bot, it.groupValues[2], it.groupValues[1].toIntOrNull() ?: 1)).recallIn(recallTime.toLong())
+                                    in 1..120 -> subject.sendMessage(LoliconRequester().request(groupR18Map, subject, bot, it.groupValues[2], it.groupValues[1].toIntOrNull() ?: 1)).recallIn(recallTime.toLong()*1000)
                                     else -> subject.sendMessage(LoliconRequester().request(groupR18Map, subject, bot, it.groupValues[2], it.groupValues[1].toIntOrNull() ?: 1))
                                 }
                                 logger.info("${it.groupValues[1].toIntOrNull() ?: 1}张${it.groupValues[2]}色图响应完毕")
@@ -80,7 +80,7 @@ object MiraiSetuPlugin : KotlinPlugin(JvmPluginDescription(id = "nya.xfy.miraise
                             in 1..5 -> {
                                 logger.info("正在获取${it.groupValues[1].toIntOrNull() ?: 1}张${it.groupValues[2]}色图")
                                 when (recallTime) {
-                                    in 1..120 -> subject.sendMessage(LoliconRequester().request(friendR18Map, subject, bot, it.groupValues[2], it.groupValues[1].toIntOrNull() ?: 1)).recallIn(recallTime.toLong())
+                                    in 1..120 -> subject.sendMessage(LoliconRequester().request(friendR18Map, subject, bot, it.groupValues[2], it.groupValues[1].toIntOrNull() ?: 1)).recallIn(recallTime.toLong()*1000)
                                     else -> subject.sendMessage(LoliconRequester().request(friendR18Map, subject, bot, it.groupValues[2], it.groupValues[1].toIntOrNull() ?: 1))
                                 }
                                 logger.info("${it.groupValues[1].toIntOrNull() ?: 1}张${it.groupValues[2]}色图响应完毕")
