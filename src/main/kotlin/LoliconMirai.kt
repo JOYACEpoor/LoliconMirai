@@ -103,12 +103,12 @@ object LoliconMirai : KotlinPlugin(JvmPluginDescription(id = "nya.xfy.LoliconMir
                                     true ->{
                                         logger.info("正在获取[${num}]张${mode}=[${keyword}]的色图")
                                         if (loliconResponse.data.size < num)
-                                            mutableList.add(ForwardMessage.Node(bot.id, Date().time.toInt(), bot.nameCardOrNick, buildMessageChain { +PlainText("关于[${keyword}]的图片只有${loliconResponse.data.size}张") }))
+                                            mutableList.add(ForwardMessage.Node(bot.id, Date().time.toInt()*1000, bot.nameCardOrNick, buildMessageChain { +PlainText("关于[${keyword}]的图片只有${loliconResponse.data.size}张") }))
                                         for (item in loliconResponse.data) {
                                             response = okHttpClient.newCall(Request.Builder().url(item.urls.original).build()).execute()
                                             when (response.isSuccessful) {
-                                                true -> mutableList.add(ForwardMessage.Node(bot.id, Date().time.toInt(), bot.nameCardOrNick, buildMessageChain { +subject.uploadImage(response.body!!.byteStream().toExternalResource().toAutoCloseable()) }))
-                                                else -> mutableList.add(ForwardMessage.Node(bot.id, Date().time.toInt(),bot.nameCardOrNick, buildMessageChain { +PlainText("哎呀，图片失踪了\n${item.urls.original}") }))
+                                                true -> mutableList.add(ForwardMessage.Node(bot.id, Date().time.toInt()*1000, bot.nameCardOrNick, buildMessageChain { +subject.uploadImage(response.body!!.byteStream().toExternalResource().toAutoCloseable()) }))
+                                                else -> mutableList.add(ForwardMessage.Node(bot.id, Date().time.toInt()*1000,bot.nameCardOrNick, buildMessageChain { +PlainText("哎呀，图片失踪了\n${item.urls.original}") }))
                                             }
                                         }
                                         logger.info("${num}张${keyword}色图发送完毕")
@@ -152,7 +152,7 @@ object LoliconMirai : KotlinPlugin(JvmPluginDescription(id = "nya.xfy.LoliconMir
             val r18: Boolean,
             val width: Int,
             val height: Int,
-            val tags: MutableList<String>,
+            val tags: List<String>,
             val ext: String,
             val uploadDate: Long,
             val urls: Urls
