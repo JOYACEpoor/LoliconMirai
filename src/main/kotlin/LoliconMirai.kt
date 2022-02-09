@@ -138,7 +138,7 @@ object LoliconMirai : KotlinPlugin(JvmPluginDescription(id = "nya.xfy.LoliconMir
             }finally {
                 response.close()
             }
-        return RawForwardMessage(mutableList).render(object : ForwardMessage.DisplayStrategy { override fun generateTitle(forward: RawForwardMessage): String { return "${num}张${keyword}色图" } })
+        return RawForwardMessage(mutableList).render(object : ForwardMessage.DisplayStrategy { override fun generateTitle(forward: RawForwardMessage): String { return keyword } })
     }
     @Serializable
     private data class LoliconResponse(val error: String, val data: List<Data>) {
