@@ -18,14 +18,13 @@ import net.mamoe.mirai.message.data.RawForwardMessage
 import net.mamoe.mirai.message.data.buildMessageChain
 import net.mamoe.mirai.utils.ExternalResource.Companion.toExternalResource
 import net.mamoe.mirai.utils.info
-import nya.xfy.MiraiSetuPluginConfig.botOwnerId
-import nya.xfy.MiraiSetuPluginConfig.connectTimeout
-import nya.xfy.MiraiSetuPluginConfig.readTimeout
-import nya.xfy.MiraiSetuPluginConfig.recallTime
-import nya.xfy.MiraiSetuPluginConfig.writeTimeout
-import nya.xfy.MiraiSetuPluginData.groupR18Map
-import nya.xfy.MiraiSetuPluginData.groupSetuMap
-import nya.xfy.MiraiSetuPluginData.loliconApi
+import nya.xfy.LoliconMiraiConfig.botOwnerId
+import nya.xfy.LoliconMiraiConfig.connectTimeout
+import nya.xfy.LoliconMiraiConfig.readTimeout
+import nya.xfy.LoliconMiraiConfig.recallTime
+import nya.xfy.LoliconMiraiConfig.writeTimeout
+import nya.xfy.LoliconMiraiData.groupR18Map
+import nya.xfy.LoliconMiraiData.groupSetuMap
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.net.SocketException
@@ -33,11 +32,11 @@ import java.net.SocketTimeoutException
 import java.util.*
 import java.util.concurrent.TimeUnit
 
-object MiraiSetuPlugin : KotlinPlugin(JvmPluginDescription(id = "nya.xfy.miraisetuplugin", version = "1.5.0")) {
+object LoliconMirai : KotlinPlugin(JvmPluginDescription(id = "nya.xfy.LoliconMirai", version = "1.5.0")) {
     private val okHttpClient: OkHttpClient = OkHttpClient.Builder().readTimeout(readTimeout.toLong(), TimeUnit.SECONDS).writeTimeout(writeTimeout.toLong(), TimeUnit.SECONDS).connectTimeout(connectTimeout.toLong(), TimeUnit.SECONDS).build()
     override fun onEnable() {
-        MiraiSetuPluginConfig.reload()
-        MiraiSetuPluginData.reload()
+        LoliconMiraiConfig.reload()
+        LoliconMiraiData.reload()
         logger.info { "Plugin loaded" }
         this.globalEventChannel().subscribeGroupMessages {
             matching(Regex("""来(\d*)张(.*)色图""")) {
@@ -55,7 +54,7 @@ object MiraiSetuPlugin : KotlinPlugin(JvmPluginDescription(id = "nya.xfy.miraise
                             else -> subject.sendMessage("不可以！！！")
                         }
                     }
-                    false -> subject.sendMessage("不可以色色！")
+                    else -> subject.sendMessage("不可以色色！")
                 }
             }
             case("开启r18", ignoreCase = true, trim = true) {
@@ -97,8 +96,7 @@ object MiraiSetuPlugin : KotlinPlugin(JvmPluginDescription(id = "nya.xfy.miraise
         val mutableList = mutableListOf<ForwardMessage.Node>()
         lateinit var response: okhttp3.Response
             try {
-                response = okHttpClient.newCall(Request.Builder().url("${loliconApi}?r18=${groupR18Map[subject.id]}&proxy=i.pixiv.re&num=${num}&${mode}=${keyword}").build()).execute()
-                logger.info("${response.request.url}")
+                response = okHttpClient.newCall(Request.Builder().url("https://api.lolicon.app/setu/v2?r18=${groupR18Map[subject.id]}&proxy=i.pixiv.re&num=${num}&${mode}=${keyword}").build()).execute()
                 val loliconResponse: LoliconResponse = Json.decodeFromString(response.body!!.string())
                 when (response.isSuccessful) {
                     true -> {
@@ -112,6 +110,7 @@ object MiraiSetuPlugin : KotlinPlugin(JvmPluginDescription(id = "nya.xfy.miraise
                                         }
                                     }
                                     else ->{
+                                        logger.info("${mode}=${keyword}")
                                         for (item in loliconResponse.data) {
                                             response = okHttpClient.newCall(Request.Builder().url(item.urls.original).build()).execute()
                                             when (response.isSuccessful) {

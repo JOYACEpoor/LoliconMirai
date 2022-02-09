@@ -1,1 +1,1 @@
-rootProject.name = "miraisetuplugin"
+rootProject.name = "LoliconMirai"
