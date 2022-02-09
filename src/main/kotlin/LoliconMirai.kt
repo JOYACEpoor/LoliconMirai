@@ -44,12 +44,10 @@ object LoliconMirai : KotlinPlugin(JvmPluginDescription(id = "nya.xfy.LoliconMir
                     true -> {
                         when ((it.groupValues[1].toIntOrNull() ?: 1) in 1..5) {
                             true -> {
-                                logger.info("正在获取${it.groupValues[1].toIntOrNull() ?: 1}张${it.groupValues[2]}色图")
                                 when (recallTime in 1..120) {
-                                    true -> request(subject, bot, it.groupValues[1].toIntOrNull() ?: 1,it.groupValues[2]).takeIf { it.nodeList.isNotEmpty() }?.let { subject.sendMessage(it).recallIn(recallTime.toLong() * 1000) }
-                                    else -> request(subject, bot, it.groupValues[1].toIntOrNull() ?: 1,it.groupValues[2]).takeIf { it.nodeList.isNotEmpty() }?.let { subject.sendMessage(it) }
+                                    true -> request(subject, bot, it.groupValues[1].toIntOrNull() ?: 1,it.groupValues[2]).takeIf { it1 -> it1.nodeList.isNotEmpty() }?.let { it2 -> subject.sendMessage(it2).recallIn(recallTime.toLong() * 1000) }
+                                    else -> request(subject, bot, it.groupValues[1].toIntOrNull() ?: 1,it.groupValues[2]).takeIf { it1 -> it1.nodeList.isNotEmpty() }?.let { it2 -> subject.sendMessage(it2) }
                                 }
-                                logger.info("${it.groupValues[1].toIntOrNull() ?: 1}张${it.groupValues[2]}色图发送完毕")
                             }
                             else -> subject.sendMessage("不可以！！！")
                         }
@@ -94,23 +92,18 @@ object LoliconMirai : KotlinPlugin(JvmPluginDescription(id = "nya.xfy.LoliconMir
     @OptIn(ExperimentalSerializationApi::class)
     private suspend fun request(subject: Group, bot:Bot, num:Int, keyword:String, mode:String="tag"):ForwardMessage{
         val mutableList = mutableListOf<ForwardMessage.Node>()
-        lateinit var response: okhttp3.Response
+        var response = okHttpClient.newCall(Request.Builder().url("https://api.lolicon.app/setu/v2?r18=${groupR18Map[subject.id]}&proxy=i.pixiv.re&num=${num}&${mode}=${keyword}").build()).execute()
             try {
-                response = okHttpClient.newCall(Request.Builder().url("https://api.lolicon.app/setu/v2?r18=${groupR18Map[subject.id]}&proxy=i.pixiv.re&num=${num}&${mode}=${keyword}").build()).execute()
-                val loliconResponse: LoliconResponse = Json.decodeFromString(response.body!!.string())
                 when (response.isSuccessful) {
                     true -> {
-                        when (loliconResponse.error) {
-                            "" -> {
-                                when (loliconResponse.data.isEmpty()) {
-                                    true -> {
-                                        when (mode) {
-                                            "tag" -> request(subject, bot,  num, keyword,"keyword")
-                                            "keyword" -> subject.sendMessage("你的xp好怪。。。")
-                                        }
-                                    }
-                                    else ->{
-                                        logger.info("${mode}=${keyword}")
+                        val loliconResponse: LoliconResponse = Json.decodeFromString(response.body!!.string())
+                        when (loliconResponse.error=="") {
+                            true -> {
+                                when (loliconResponse.data.isNotEmpty()) {
+                                    true ->{
+                                        logger.info("正在获取[${num}]张${mode}=[${keyword}]的色图")
+                                        if (loliconResponse.data.size < num)
+                                            mutableList.add(ForwardMessage.Node(bot.id, Date().time.toInt(), bot.nameCardOrNick, buildMessageChain { +PlainText("关于[${keyword}]的图片只有${loliconResponse.data.size}张") }))
                                         for (item in loliconResponse.data) {
                                             response = okHttpClient.newCall(Request.Builder().url(item.urls.original).build()).execute()
                                             when (response.isSuccessful) {
@@ -118,15 +111,20 @@ object LoliconMirai : KotlinPlugin(JvmPluginDescription(id = "nya.xfy.LoliconMir
                                                 else -> mutableList.add(ForwardMessage.Node(bot.id, Date().time.toInt(),bot.nameCardOrNick, buildMessageChain { +PlainText("哎呀，图片失踪了\n${item.urls.original}") }))
                                             }
                                         }
-                                        if (loliconResponse.data.lastIndex + 1 < num)
-                                            subject.sendMessage("关于[${keyword}]的图片只有${loliconResponse.data.size}张")
+                                        logger.info("${num}张${keyword}色图发送完毕")
+                                    }
+                                    else -> {
+                                        when (mode=="tag") {
+                                            true -> request(subject, bot,  num, keyword,"keyword")
+                                            else -> subject.sendMessage("你的xp好怪。。。")
+                                        }
                                     }
                                 }
                             }
-                            else -> subject.sendMessage("请求api时出错了，待会在试试？api错误信息${loliconResponse.error}")
+                            else -> subject.sendMessage("api出错了，待会在试试？api错误信息${loliconResponse.error}")
                         }
                     }
-                    else -> subject.sendMessage("请求api出错，请检查网络问题")
+                    else -> subject.sendMessage("无法连接到LoliconApi，请检查网络问题")
                 }
             } catch (e: IllegalStateException) {
                 subject.sendMessage("图片发送失败了，再试试看吧？")
