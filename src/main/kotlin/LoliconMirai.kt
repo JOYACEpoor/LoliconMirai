@@ -55,7 +55,7 @@ object LoliconMirai : KotlinPlugin(JvmPluginDescription(id = "nya.xfy.LoliconMir
             matching(Regex("""来(\d*)张(.*)色图""")) {
                 when (groupSetuMap[subject.id]) {
                     true -> {
-                        when ((it.groupValues[1].toIntOrNull() ?: 1) in 1..50) {
+                        when ((it.groupValues[1].toIntOrNull() ?: 1) in 1..5) {
                             true -> {
                                 when (LoliconMiraiConfig.recallTime in 1..120) {
                                     true -> request(subject, bot, it.groupValues[1].toIntOrNull() ?: 1, it.groupValues[2]).takeIf { it1 -> it1.nodeList.isNotEmpty() }?.let { it2 -> subject.sendMessage(it2).recallIn(LoliconMiraiConfig.recallTime.toLong() * 1000) }
@@ -98,7 +98,6 @@ object LoliconMirai : KotlinPlugin(JvmPluginDescription(id = "nya.xfy.LoliconMir
                 }
             }
         }
-
     }
 
     @Suppress("NAME_SHADOWING")
@@ -114,13 +113,13 @@ object LoliconMirai : KotlinPlugin(JvmPluginDescription(id = "nya.xfy.LoliconMir
                         true -> {
                                 when (loliconResponse.data.isNotEmpty()) {
                                     true -> {
-                                        runBlocking {
-                                            launch {
-                                                when(keyword==""){
-                                                    true -> logger.info("正在获取[${num}]张色图")
-                                                    else -> logger.info("正在获取[${num}]张${mode}=[${keyword}]的色图")
-                                                }
+                                        launch {
+                                            when(keyword==""){
+                                                true -> logger.info("正在获取[${num}]张色图")
+                                                else -> logger.info("正在获取[${num}]张${mode}=[${keyword}]的色图")
                                             }
+                                        }
+                                        runBlocking {
                                             launch {
                                                 if (loliconResponse.data.size < num) mutableList.add(ForwardMessage.Node(bot.id, 0, bot.nameCardOrNick, buildMessageChain { +PlainText("关于[${keyword}]的图片只有${loliconResponse.data.size}张") }))
                                             }
