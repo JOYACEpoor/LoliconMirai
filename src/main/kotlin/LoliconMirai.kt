@@ -29,7 +29,7 @@ import java.net.SocketException
 import java.net.SocketTimeoutException
 import java.util.concurrent.TimeUnit
 
-object LoliconMirai : KotlinPlugin(JvmPluginDescription(id = "nya.xfy.LoliconMirai", version = "1.5.1")) {
+object LoliconMirai : KotlinPlugin(JvmPluginDescription(id = "nya.xfy.LoliconMirai", version = "1.5.2")) {
 
     private val okHttpClient: OkHttpClient = OkHttpClient.Builder().let {
         it.readTimeout(0, TimeUnit.SECONDS)
@@ -167,5 +167,5 @@ object LoliconMirai : KotlinPlugin(JvmPluginDescription(id = "nya.xfy.LoliconMir
             data class Urls(val original: String)
         }
     }
-    
+
 }
