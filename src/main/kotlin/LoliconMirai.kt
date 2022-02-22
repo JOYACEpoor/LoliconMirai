@@ -20,7 +20,6 @@ import net.mamoe.mirai.message.data.ForwardMessage
 import net.mamoe.mirai.message.data.RawForwardMessage
 import net.mamoe.mirai.message.data.buildMessageChain
 import net.mamoe.mirai.utils.ExternalResource.Companion.toExternalResource
-import net.mamoe.mirai.utils.ExternalResource.Companion.uploadAsImage
 import nya.xfy.LoliconMiraiData.groupR18Map
 import nya.xfy.LoliconMiraiData.groupSetuMap
 import okhttp3.OkHttpClient
@@ -29,7 +28,7 @@ import java.net.SocketException
 import java.net.SocketTimeoutException
 import java.util.concurrent.TimeUnit
 
-object LoliconMirai : KotlinPlugin(JvmPluginDescription(id = "nya.xfy.LoliconMirai", version = "1.5.2")) {
+object LoliconMirai : KotlinPlugin(JvmPluginDescription(id = "nya.xfy.LoliconMirai", version = "1.5.3")) {
 
     private val okHttpClient: OkHttpClient = OkHttpClient.Builder().let {
         it.readTimeout(0, TimeUnit.SECONDS)
@@ -46,21 +45,16 @@ object LoliconMirai : KotlinPlugin(JvmPluginDescription(id = "nya.xfy.LoliconMir
     }
 
     private fun listener() {
-        this.globalEventChannel().subscribeGroupMessages(priority = EventPriority.MONITOR) {
+        this.globalEventChannel().subscribeGroupMessages(priority = EventPriority.HIGHEST) {
             matching(Regex("""来(\d*)张(.*)色图""")) {
-                when (groupSetuMap[subject.id]) {
+                when (groupSetuMap[subject.id] == true && (it.groupValues[1].toIntOrNull() ?: 1) in 1..5) {
                     true -> {
-                        when ((it.groupValues[1].toIntOrNull() ?: 1) in 1..50) {
-                            true -> {
-                                logger.info("正在获取${it.groupValues[2]}色图")
-                                when (LoliconMiraiConfig.recallTime in 1..120) {
-                                    true -> request(subject, bot, it.groupValues[1].toIntOrNull() ?: 1, it.groupValues[2]).takeIf { it1 -> it1.nodeList.isNotEmpty() }?.let { it2 -> subject.sendMessage(it2).recallIn(LoliconMiraiConfig.recallTime.toLong() * 1000) }
-                                    else -> request(subject, bot, it.groupValues[1].toIntOrNull() ?: 1, it.groupValues[2]).takeIf { it1 -> it1.nodeList.isNotEmpty() }?.let { it2 -> subject.sendMessage(it2) }
-                                }
-                                logger.info("${it.groupValues[2]}色图发送完毕")
-                            }
-                            else -> subject.sendMessage("不可以！！！")
+                        logger.info("正在获取${it.groupValues[2]}色图")
+                        when (LoliconMiraiConfig.recallTime in 1..120) {
+                            true -> request(subject, bot, it.groupValues[1].toIntOrNull() ?: 1, it.groupValues[2]).takeIf { it1 -> it1.nodeList.isNotEmpty() }?.let { it2 -> subject.sendMessage(it2).recallIn(LoliconMiraiConfig.recallTime.toLong() * 1000) }
+                            else -> request(subject, bot, it.groupValues[1].toIntOrNull() ?: 1, it.groupValues[2]).takeIf { it1 -> it1.nodeList.isNotEmpty() }?.let { it2 -> subject.sendMessage(it2) }
                         }
+                        logger.info("${it.groupValues[2]}色图发送完毕")
                     }
                     else -> subject.sendMessage("不可以色色！")
                 }
@@ -109,7 +103,7 @@ object LoliconMirai : KotlinPlugin(JvmPluginDescription(id = "nya.xfy.LoliconMir
                                     launch {
                                         val response = okHttpClient.newCall(Request.Builder().url(item.urls.original).build()).execute()
                                         when (response.isSuccessful) {
-                                            true -> mutableList.add(ForwardMessage.Node(bot.id, 0, bot.nameCardOrNick, buildMessageChain { +response.body!!.byteStream().toExternalResource().toAutoCloseable().uploadAsImage(subject) }))
+                                            true -> mutableList.add(ForwardMessage.Node(bot.id, 0, bot.nameCardOrNick, buildMessageChain { +subject.uploadImage(response.body!!.byteStream().toExternalResource().toAutoCloseable()) }))
                                             else -> mutableList.add(ForwardMessage.Node(bot.id, 0, bot.nameCardOrNick, buildMessageChain { +"哎呀，图片失踪了\n${item.urls.original}" }))
                                         }
                                         response.close()
@@ -167,5 +161,4 @@ object LoliconMirai : KotlinPlugin(JvmPluginDescription(id = "nya.xfy.LoliconMir
             data class Urls(val original: String)
         }
     }
-
 }
