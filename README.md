@@ -1,12 +1,8 @@
 # Thanks [LoliconApi](api.lolicon.app)
-    
     关键词匹配搜索支持tag和keyword搜索
     使用方式见config.yml
-
 # 为简化命令 v1.5.3版本色图数量改为roll(1-10)点随机决定
-
-config.yml
-    
+# config.yml
     //匹配的命令 注意使用正则表达式 非必要可以不修改
     command: '来点(.*)色图'
     //反代地址，非代理地址，非必要不要修改
