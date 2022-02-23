@@ -1,42 +1,39 @@
 package nya.xfy
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.supervisorScope
-import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.json.Json
-import net.mamoe.mirai.Bot
-import net.mamoe.mirai.console.plugin.jvm.JvmPluginDescription
-import net.mamoe.mirai.console.plugin.jvm.KotlinPlugin
-import net.mamoe.mirai.contact.Group
-import net.mamoe.mirai.contact.Member
-import net.mamoe.mirai.contact.MemberPermission
-import net.mamoe.mirai.contact.nameCardOrNick
-import net.mamoe.mirai.event.EventPriority
-import net.mamoe.mirai.event.globalEventChannel
-import net.mamoe.mirai.event.subscribeGroupMessages
-import net.mamoe.mirai.message.data.ForwardMessage
-import net.mamoe.mirai.message.data.RawForwardMessage
-import net.mamoe.mirai.message.data.buildMessageChain
+import kotlinx.coroutines.*
+import kotlinx.serialization.*
+import kotlinx.serialization.json.*
+import net.mamoe.mirai.*
+import net.mamoe.mirai.console.plugin.jvm.*
+import net.mamoe.mirai.contact.*
+import net.mamoe.mirai.event.*
+import net.mamoe.mirai.message.data.*
 import net.mamoe.mirai.utils.ExternalResource.Companion.toExternalResource
 import nya.xfy.LoliconMiraiConfig.botOwnerId
+import nya.xfy.LoliconMiraiConfig.command
+import nya.xfy.LoliconMiraiConfig.connectionFailureReply
+import nya.xfy.LoliconMiraiConfig.noMatchResultReply
+import nya.xfy.LoliconMiraiConfig.proxyAddress
+import nya.xfy.LoliconMiraiConfig.r18OffCommand
+import nya.xfy.LoliconMiraiConfig.r18OffReply
+import nya.xfy.LoliconMiraiConfig.r18OnCommand
+import nya.xfy.LoliconMiraiConfig.r18OnReply
 import nya.xfy.LoliconMiraiConfig.recallTime
+import nya.xfy.LoliconMiraiConfig.refuseReply
+import nya.xfy.LoliconMiraiConfig.setuOffCommand
+import nya.xfy.LoliconMiraiConfig.setuOffReply
+import nya.xfy.LoliconMiraiConfig.setuOnCommand
+import nya.xfy.LoliconMiraiConfig.setuOnReply
+import nya.xfy.LoliconMiraiConfig.startSearchingReply
+import nya.xfy.LoliconMiraiData.apiAddress
 import nya.xfy.LoliconMiraiData.groupR18Map
 import nya.xfy.LoliconMiraiData.groupSetuMap
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import java.util.concurrent.TimeUnit
+import okhttp3.*
+import java.util.concurrent.*
 
 object LoliconMirai : KotlinPlugin(JvmPluginDescription(id = "nya.xfy.LoliconMirai", version = "1.5.3")), CoroutineScope {
 
-    private val okHttpClient: OkHttpClient = OkHttpClient.Builder().let {
-        it.readTimeout(0, TimeUnit.SECONDS)
-        it.writeTimeout(0, TimeUnit.SECONDS)
-        it.connectTimeout(0, TimeUnit.SECONDS)
-    }.build()
+    private val okHttpClient: OkHttpClient = OkHttpClient.Builder().readTimeout(0, TimeUnit.SECONDS).writeTimeout(0, TimeUnit.SECONDS).connectTimeout(0, TimeUnit.SECONDS).build()
 
     override fun onEnable() {
         runBlocking {
@@ -48,58 +45,57 @@ object LoliconMirai : KotlinPlugin(JvmPluginDescription(id = "nya.xfy.LoliconMir
 
     private fun listener() {
         this.globalEventChannel().subscribeGroupMessages {
-            finding(Regex("""来点(.*)色图""")) {
+            finding(Regex(command)) {
                 when (groupSetuMap[subject.id]) {
                     true -> {
+                        sendMessage(subject, startSearchingReply)
                         logger.info("正在获取${it.groupValues[1]}色图")
                         sendSetu(subject, bot, it.groupValues[1])
                         logger.info("${it.groupValues[1]}色图发送完毕")
                     }
-                    else -> subject.sendMessage("不可以色色！")
+                    else -> subject.sendMessage(refuseReply)
                 }
             }
         }
         this.globalEventChannel().subscribeGroupMessages(priority = EventPriority.MONITOR) {
-            case("开启r18", ignoreCase = true, trim = true) {
-                if(getPermission(sender)) {
-                    groupR18Map[subject.id] = 2
-                    subject.sendMessage("已开启r18")
-                }
-            }
-            case("关闭r18", ignoreCase = true, trim = true) {
-                if(getPermission(sender)) {
-                    groupR18Map[subject.id] = 0
-                    subject.sendMessage("已关闭r18")
-                }
-            }
-            case("开启色图", ignoreCase = true, trim = true) {
-                if(getPermission(sender)) {
+            case(setuOnCommand, ignoreCase = true, trim = true) {
+                if (getPermission(sender)) {
                     groupSetuMap[subject.id] = true
-                    subject.sendMessage("已开启色图")
+                    sendMessage(subject, setuOnReply)
                 }
             }
-            case("关闭色图", ignoreCase = true, trim = true) {
-                if(getPermission(sender)) {
+            case(setuOffCommand, ignoreCase = true, trim = true) {
+                if (getPermission(sender)) {
                     groupSetuMap[subject.id] = false
-                    subject.sendMessage("已关闭色图")
+                    sendMessage(subject, setuOffReply)
+                }
+            }
+            case(r18OnCommand, ignoreCase = true, trim = true) {
+                if (getPermission(sender)) {
+                    groupR18Map[subject.id] = 2
+                    sendMessage(subject, r18OnReply)
+                }
+            }
+            case(r18OffCommand, ignoreCase = true, trim = true) {
+                if (getPermission(sender)) {
+                    groupR18Map[subject.id] = 0
+                    sendMessage(subject, r18OffReply)
                 }
             }
         }
     }
 
-    private fun getPermission(sender:Member):Boolean=sender.permission > MemberPermission.MEMBER || botOwnerId.contains(sender.id)
-
     @Suppress("NAME_SHADOWING")
     @OptIn(ExperimentalSerializationApi::class)
     private suspend fun sendSetu(subject: Group, bot: Bot, keyword: String, mode: String = "tag") {
         val mutableList = mutableListOf<ForwardMessage.Node>()
-        val response = okHttpClient.newCall(Request.Builder().url("https://api.lolicon.app/setu/v2?r18=${groupR18Map[subject.id]}&proxy=i.pixiv.re&num=${(1..10).random()}&${mode}=${keyword}").build()).execute()
+        val response = okHttpClient.newCall(Request.Builder().url("${apiAddress}?r18=${groupR18Map[subject.id]}&proxy=${proxyAddress}&num=${(1..10).random()}&${mode}=${keyword}").build()).execute()
         when (response.isSuccessful) {
             true -> {
                 val loliconResponse: LoliconResponse = Json.decodeFromString(response.body!!.string())
                 when (loliconResponse.error == "" && loliconResponse.data.isNotEmpty()) {
                     true -> {
-                        supervisorScope  {
+                        supervisorScope {
                             for (item in loliconResponse.data) {
                                 launch {
                                     val response = okHttpClient.newCall(Request.Builder().url(item.urls.original).build()).execute()
@@ -116,20 +112,26 @@ object LoliconMirai : KotlinPlugin(JvmPluginDescription(id = "nya.xfy.LoliconMir
                     }
                     else -> when (mode == "tag") {
                         true -> sendSetu(subject, bot, keyword, "keyword")
-                        else -> subject.sendMessage("你的xp好怪。。。")
+                        else -> sendMessage(subject, noMatchResultReply)
                     }
                 }
             }
-            else -> subject.sendMessage("无法连接到LoliconApi")
+            else -> sendMessage(subject, connectionFailureReply)
         }
         response.close()
         subject.sendMessage(RawForwardMessage(mutableList).render(object : ForwardMessage.DisplayStrategy {
             override fun generateTitle(forward: RawForwardMessage) = when (keyword == "") {
-                    true -> "群聊的聊天记录"
-                    else -> keyword
-                }
-        })).takeIf { recallTime in 1..120 }?.recallIn((recallTime*1000).toLong())
+                true -> "群聊的聊天记录"
+                else -> keyword
+            }
+        })).takeIf { recallTime in 1..120 }?.recallIn((recallTime * 1000).toLong())
     }
+
+    private fun getPermission(sender: Member): Boolean =
+        sender.permission > MemberPermission.MEMBER || botOwnerId.contains(sender.id)
+
+    private suspend fun sendMessage(subject: Group, message: String) =
+        message.takeIf { message != "" }?.let { subject.sendMessage(message) }
 
     @Serializable
     private data class LoliconResponse(val error: String, val data: List<Data>) {
