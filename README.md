@@ -1,8 +1,7 @@
 # Thanks [LoliconApi](api.lolicon.app)
     
-    目前适配loliconapi v2 支持关键词和数量搜索
-    关键词搜索会先进行tag匹配，结果为空再进行keyword匹配
-    使用方式在config.yml中
+    关键词匹配搜索支持tag和keyword搜索
+    使用方式见config.yml
 
 config.yml
     
