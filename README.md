@@ -9,7 +9,6 @@
     //反代地址，非代理地址，非必要不要修改
     proxyAddress: i.pixiv.re
     
-    //以下均为回复 留空时则禁用该回复
     //启用或关闭色图功能的命令
     setuOnCommand: 开启色图
     setuOffCommand: 关闭色图
@@ -18,23 +17,19 @@
     r18OnCommand: 开启r18
     r18OffCommand: 关闭r18
     
+    //以下为回复 留空时(即''，如下一)则禁用该回复
     //匹配到命令开始搜索时bot的回复
     startSearchingReply: ''
-    
     //匹配到命令但禁止色色时bot的回复
     refuseReply: 不可以色色！
-    
     //启用或关闭色图功能的回复
     setuOnReply: 已开启色图
     setuOffReply: 已关闭色图
-    
     //启用或关闭r18功能的回复
     r18OnReply: 已开启r18
     r18OffReply: 已关闭r18
-    
     //没有搜索到结果时的回复
     noMatchResultReply: 你的xp好怪。。。
-    
     //无法连接上LoliconApi时的回复
     connectionFailureReply: ''
     
