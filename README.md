@@ -5,23 +5,27 @@
 
 关键词搜索会先进行tag匹配，结果为空再进行keyword匹配
 
-使用方式
+使用方式在config.yml中
 
-    ·来张色图 //可被禁用
-    ·来(1-5)张色图 //可被禁用
-    ·来(1-5)张**色图 //可被禁用
-    
-    ·开启r18 //管理员以上和bot主人都有权限使用此命令
-    ·关闭r18 //管理员以上和bot主人都有权限使用此命令
-    ·开启色图 //管理员以上和bot主人都有权限使用此命令
-    ·关闭色图 //管理员以上和bot主人都有权限使用此命令
-    
-config.yml中botOwnerId可以设置多个bot主人qq号
-
-格式如下: 
-
+config.yml
+    //注意使用正则表达式
+    command: '来点(.*)色图'
+    //反代地址，非代理地址，非必要不要修改
+    proxyAddress: i.pixiv.re
+    setuOnCommand: 开启色图
+    setuOffCommand: 关闭色图
+    r18OnCommand: 开启r18
+    r18OffCommand: 关闭r18
+    startSearchingReply: ''
+    refuseReply: 不可以色色！
+    setuOnReply: 已开启色图
+    setuOffReply: 已关闭色图
+    r18OnReply: 已开启r18
+    r18OffReply: 已关闭r18
+    noMatchResultReply: 你的xp好怪。。。
+    connectionFailureReply: ''
+    recallTime: -1
     botOwnerId: 
-     - 112233
-     - 123456
+      - 947560351
 
 本项目遵循AGPL v3开源协议
