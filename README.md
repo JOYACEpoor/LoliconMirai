@@ -1,7 +1,5 @@
 # Thanks [LoliconApi](api.lolicon.app)
     关键词匹配搜索支持tag和keyword搜索
-    使用方式见config.yml
-# 为简化命令 v1.5.3版本后色图数量改为roll(1-10)点随机决定
 # 本插件支持[MiraiConsole权限系统](https://docs.mirai.mamoe.net/console/Permissions.html#%E5%88%A4%E6%96%AD%E6%9D%83%E9%99%90)配置
 即本插件需要使用Console的权限系统进行权限配置才能使用
 # commands
