@@ -1,5 +1,5 @@
 # Thanks [LoliconApi](api.lolicon.app)
-    关键词匹配搜索支持tag和keyword搜索
+关键词匹配搜索支持tag和keyword搜索
 # 本插件支持[MiraiConsole权限系统](https://docs.mirai.mamoe.net/console/Permissions.html#%E5%88%A4%E6%96%AD%E6%9D%83%E9%99%90)配置
 即本插件需要使用Console的权限系统进行权限配置才能使用
 # commands
