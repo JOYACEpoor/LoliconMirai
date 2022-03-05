@@ -1,21 +1,22 @@
 # Thanks [LoliconApi](api.lolicon.app)
     关键词匹配搜索支持tag和keyword搜索
     使用方式见config.yml
-# 为简化命令 v1.5.3版本色图数量改为roll(1-10)点随机决定
+# 为简化命令 v1.5.3版本后色图数量改为roll(1-10)点随机决定
+# 本插件支持[MiraiConsole权限系统](https://docs.mirai.mamoe.net/console/Permissions.html#%E5%88%A4%E6%96%AD%E6%9D%83%E9%99%90)配置
+即本插件需要使用Console的权限系统进行权限配置才能使用
+# commands
+
+    (/)来点色图
+    (/)来点 <keyword>
+    (/)manage 
+        setuon
+        setuoff
+        r18on
+        r18off
 # config.yml
-    //匹配的命令 注意使用正则表达式 非必要可以不修改
-    command: '来点(.*)色图'
-    
-    //反代地址，非代理地址，非必要不要修改
-    proxyAddress: i.pixiv.re
-    
-    //启用或关闭色图功能的命令
-    setuOnCommand: 开启色图
-    setuOffCommand: 关闭色图
-    
-    //启用或关闭r18功能的命令
-    r18OnCommand: 开启r18
-    r18OffCommand: 关闭r18
+
+    //撤回功能 1s-120s时会生效，其他数字则禁用
+    recallTime: -1
     
     //以下为回复 留空时(即''，如下一)则禁用该回复
     //匹配到命令开始搜索时bot的回复
@@ -32,11 +33,3 @@
     noMatchResultReply: 你的xp好怪。。。
     //无法连接上LoliconApi时的回复
     connectionFailureReply: ''
-    
-    //撤回功能 1s-120s时会生效，其他数字则禁用
-    recallTime: -1
-    
-    //bot主人qq号填写在这里 可以在没有群管理的情况下进行管理
-    botOwnerId: 
-      - 123456
-      - 334455
