@@ -1,4 +1,4 @@
-package nya.xfy
+package nya.xfy.utils
 
 @kotlinx.serialization.Serializable
 data class LoliconResponse(val error: String, val data: List<Data>) {
