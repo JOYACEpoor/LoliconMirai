@@ -2,21 +2,15 @@
 关键词匹配搜索支持tag和keyword搜索
 # 本插件支持[MiraiConsole权限系统](https://docs.mirai.mamoe.net/console/Permissions.html#%E5%88%A4%E6%96%AD%E6%9D%83%E9%99%90)配置
 即本插件需要使用Console的权限系统进行权限配置才能使用
-# commands
-
-    (/)来点色图
-    (/)来点 <keyword>
-    (/)manage 
+# 默认command
+    (/)random
+    (/)keyword <keyword>
+    (/)manager 
         setuon
         setuoff
         r18on
         r18off
-# config.yml
-
-    //撤回功能 1s-120s时会生效，其他数字则禁用
-    recallTime: -1
-    
-    //以下为回复 留空时(即''，如下一)则禁用该回复
+# ReplyConfig.yml
     //匹配到命令开始搜索时bot的回复
     startSearchingReply: ''
     //匹配到命令但禁止色色时bot的回复
@@ -31,3 +25,10 @@
     noMatchResultReply: 你的xp好怪。。。
     //无法连接上LoliconApi时的回复
     connectionFailureReply: ''
+# CommandConfig.yml //自定义你的命令
+    random: 来点色图  //无关键词随机获取色图命令
+    keyword: 来点 //有关键词获取色图命令
+    manager: 拉bot //管理命令
+# RecallTimeConfig.yml //设置撤回时间
+    //撤回功能填入1s-120s时会生效，其他数字则禁用
+    recallTime: -1
