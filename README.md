@@ -10,7 +10,7 @@
         setuoff
         r18on
         r18off
-# ReplyConfig.yml //自定义bot的回复
+# ReplyConfig.yml //自定义bot的回复 留空可禁用
     //匹配到命令开始搜索时bot的回复
     startSearchingReply: ''
     //匹配到命令但禁止色色时bot的回复
