@@ -26,7 +26,7 @@ class Handler(private val subject: Group, private val bot: Bot) {
     suspend fun handle(keyword: String = "", mode: String = "tag") {
         when (Data.groupSetuMap[subject.id]) {
             true -> {
-                val response = Data.okHttpClient.newCall(Request.Builder().url("https://api.lolicon.app/setu/v2?r18=${Data.groupR18Map[subject.id]}&proxy=i.pixiv.re&num=${(1..10).random()}&${mode}=${keyword}").build()).execute()
+                val response = LoliconMirai.okHttpClient.newCall(Request.Builder().url("https://api.lolicon.app/setu/v2?r18=${Data.groupR18Map[subject.id]}&proxy=i.pixiv.re&num=${(5..10).random()}&${mode}=${keyword}").build()).execute()
                 when (response.isSuccessful) {
                     true -> {
                         val loliconResponse: LoliconResponse = Json.decodeFromString(response.body!!.string())
@@ -52,7 +52,7 @@ class Handler(private val subject: Group, private val bot: Bot) {
         supervisorScope {
             for (item in loliconResponse.data) {
                 launch {
-                    val response = Data.okHttpClient.newCall(Request.Builder().url(item.urls.original).build()).execute()
+                    val response = LoliconMirai.okHttpClient.newCall(Request.Builder().url(item.urls.original).build()).execute()
                     LoliconMirai.logger.info("PID: ${item.pid}获取中")
                     try {
                         when (response.isSuccessful) {
@@ -66,9 +66,11 @@ class Handler(private val subject: Group, private val bot: Bot) {
             }
         }
         subject.sendMessage(when (keyword) {
-                "" -> RawForwardMessage(mutableList).render(ForwardMessage.DisplayStrategy)
-                else -> RawForwardMessage(mutableList).render(object : ForwardMessage.DisplayStrategy {
-                    override fun generateTitle(forward: RawForwardMessage) = keyword
-                }) }).takeIf { RecallConfig.recallTime in 1..120 }?.recallIn((RecallConfig.recallTime * 1000).toLong())
+            "" -> RawForwardMessage(mutableList).render(ForwardMessage.DisplayStrategy)
+            else -> RawForwardMessage(mutableList).render(object : ForwardMessage.DisplayStrategy {
+                override fun generateTitle(forward: RawForwardMessage) = keyword
+            })
+        }
+        ).takeIf { RecallConfig.recallTime in 1..120 }?.recallIn((RecallConfig.recallTime * 1000).toLong())
     }
 }
