@@ -12,6 +12,6 @@ object GetterWithKeyword : SimpleCommand(LoliconMirai, "keyword", CommandConfig.
     suspend fun MemberCommandSenderOnMessage.handle(keyword: String) {
         val time = Date().time
         Handler(subject, bot).handle(keyword)
-        LoliconMirai.logger.info("耗时${time - Date().time}")
+        LoliconMirai.logger.info("耗时${Date().time - time}ms")
     }
 }

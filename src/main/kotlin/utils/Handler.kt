@@ -1,5 +1,6 @@
 package nya.xfy.utils
 
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -13,6 +14,7 @@ import net.mamoe.mirai.message.data.RawForwardMessage
 import net.mamoe.mirai.message.data.buildMessageChain
 import net.mamoe.mirai.utils.ExternalResource.Companion.toExternalResource
 import nya.xfy.LoliconMirai
+import nya.xfy.configs.NetworkConfig
 import nya.xfy.configs.RecallConfig
 import nya.xfy.configs.ReplyConfig
 import nya.xfy.datas.Data
@@ -26,7 +28,7 @@ class Handler(private val subject: Group, private val bot: Bot) {
     suspend fun handle(keyword: String = "", mode: String = "tag") {
         when (Data.groupSetuMap[subject.id]) {
             true -> {
-                val response = LoliconMirai.okHttpClient.newCall(Request.Builder().url("https://api.lolicon.app/setu/v2?r18=${Data.groupR18Map[subject.id]}&proxy=i.pixiv.re&num=${(5..10).random()}&${mode}=${keyword}").build()).execute()
+                val response = LoliconMirai.okHttpClient.newCall(Request.Builder().url("https://api.lolicon.app/setu/v2?r18=${Data.groupR18Map[subject.id]}&proxy=${NetworkConfig.proxyLink}&num=${(5..10).random()}&${mode}=${keyword}").build()).execute()
                 when (response.isSuccessful) {
                     true -> {
                         val loliconResponse: LoliconResponse = Json.decodeFromString(response.body!!.string())
@@ -51,16 +53,19 @@ class Handler(private val subject: Group, private val bot: Bot) {
         val mutableList = mutableListOf<ForwardMessage.Node>()
         supervisorScope {
             for (item in loliconResponse.data) {
-                launch {
-                    val response = LoliconMirai.okHttpClient.newCall(Request.Builder().url(item.urls.original).build()).execute()
+                launch(Dispatchers.IO) {
+                    val response = LoliconMirai.okHttpClient.newCall(Request.Builder().url(item.urls.original).header("referer","https://www.pixiv.net/").build()).execute()
                     LoliconMirai.logger.info("PID: ${item.pid}获取中")
                     try {
                         when (response.isSuccessful) {
                             true -> mutableList.add(ForwardMessage.Node(bot.id, 0, bot.nameCardOrNick, buildMessageChain { +subject.uploadImage(response.body!!.byteStream().toExternalResource().toAutoCloseable()) }))
                             else -> mutableList.add(ForwardMessage.Node(bot.id, 0, bot.nameCardOrNick, buildMessageChain { +"哎呀，图片失踪了\n${item.urls.original}" }))
                         }
-                    } catch (e: Exception) { mutableList.add(ForwardMessage.Node(bot.id, 0, bot.nameCardOrNick, buildMessageChain { +"哎呀，图片失踪了\n${item.urls.original}" }))
-                    } finally { response.close() }
+                    } catch (e: Exception) {
+                        mutableList.add(ForwardMessage.Node(bot.id, 0, bot.nameCardOrNick, buildMessageChain { +"哎呀，图片失踪了\n${e}\n${item.urls.original}" }))
+                    } finally {
+                        response.close()
+                    }
                     LoliconMirai.logger.info("PID: ${item.pid}上传完毕")
                 }
             }
