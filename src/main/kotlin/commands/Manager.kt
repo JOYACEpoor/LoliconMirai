@@ -3,28 +3,34 @@ package nya.xfy.commands
 import net.mamoe.mirai.console.command.CompositeCommand
 import net.mamoe.mirai.console.command.MemberCommandSenderOnMessage
 import nya.xfy.LoliconMirai
-import nya.xfy.configs.CommandConfig
-import nya.xfy.configs.ReplyConfig
-import nya.xfy.datas.Data
+import nya.xfy.configs.CommandConfig.manager
+import nya.xfy.configs.ReplyConfig.r18OffReply
+import nya.xfy.configs.ReplyConfig.r18OnReply
+import nya.xfy.configs.ReplyConfig.setuOffReply
+import nya.xfy.configs.ReplyConfig.setuOnReply
+import nya.xfy.datas.Data.groupR18Map
+import nya.xfy.datas.Data.groupSetuMap
 
-object Manager : CompositeCommand(LoliconMirai, "manager", CommandConfig.manager, description = "色图管理") {
+object Manager : CompositeCommand(LoliconMirai, "manager", manager, description = "色图管理") {
+
+
     @SubCommand
     suspend fun MemberCommandSenderOnMessage.setuon() {
-        Data.groupSetuMap[subject.id] = true.also { subject.sendMessage(ReplyConfig.setuOnReply) }
+        groupSetuMap[subject.id] = true.also { subject.sendMessage(setuOnReply) }
     }
 
     @SubCommand
     suspend fun MemberCommandSenderOnMessage.setuoff() {
-        Data.groupSetuMap[subject.id] = false.also { subject.sendMessage(ReplyConfig.setuOffReply) }
+        groupSetuMap[subject.id] = false.also { subject.sendMessage(setuOffReply) }
     }
 
     @SubCommand
     suspend fun MemberCommandSenderOnMessage.r18on() {
-        Data.groupR18Map[subject.id] = 2.also { subject.sendMessage(ReplyConfig.r18OnReply) }
+        groupR18Map[subject.id] = 2.also { subject.sendMessage(r18OnReply) }
     }
 
     @SubCommand
     suspend fun MemberCommandSenderOnMessage.r18off() {
-        Data.groupR18Map[subject.id] = 0.also { subject.sendMessage(ReplyConfig.r18OffReply) }
+        groupR18Map[subject.id] = 0.also { subject.sendMessage(r18OffReply) }
     }
 }

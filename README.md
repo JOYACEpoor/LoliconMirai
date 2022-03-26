@@ -25,6 +25,15 @@
     noMatchResultReply: 你的xp好怪。。。
     //无法连接上LoliconApi时的回复
     connectionFailureReply: ''
+# NetworkConfig.yml //网络参数设置
+    connectTimeout: 60 //以下为超时设置 保持一致即可
+    callTimeout: 60 
+    readTimeout: 60
+    writeTimeout: 60
+    proxyLink: i.pixiv.re //反代网址 可连接外网的情况下建议i.pximg.net
+    proxySwitch: true //代理开关
+    proxyAddress: 127.0.0.1 //代理地址
+    proxyPort: 10809 //代理端口
 # CommandConfig.yml //自定义你的命令
     random: 来点色图  //无关键词随机获取色图命令
     keyword: 来点 //有关键词获取色图命令

@@ -16,16 +16,33 @@ import java.net.InetSocketAddress
 import java.net.Proxy
 import java.util.concurrent.TimeUnit
 
-object LoliconMirai : KotlinPlugin(JvmPluginDescription(id = "nya.xfy.LoliconMirai", version = "1.6.3")) {
-    lateinit var okHttpClient: OkHttpClient
+object LoliconMirai : KotlinPlugin(JvmPluginDescription(id = "nya.xfy.LoliconMirai", version = "1.6.4")) {
+
+    lateinit var customClient: OkHttpClient
+    lateinit var directClient:OkHttpClient
 
     override fun onEnable() {
+        reloader()
+        init()
+        commandRegister()
+    }
+
+    private fun reloader(){
         ReplyConfig.reload()
         RecallConfig.reload()
         Data.reload()
         CommandConfig.reload()
         NetworkConfig.reload()
-        okHttpClient = OkHttpClient.Builder().apply {
+    }
+
+    private fun commandRegister(){
+        CommandManager.registerCommand(Getter)
+        CommandManager.registerCommand(GetterWithKeyword)
+        CommandManager.registerCommand(Manager)
+    }
+
+    private fun init(){
+        customClient = OkHttpClient.Builder().apply {
             this.connectTimeout(NetworkConfig.connectTimeout, TimeUnit.SECONDS)
             this.callTimeout(NetworkConfig.callTimeout, TimeUnit.SECONDS)
             this.readTimeout(NetworkConfig.readTimeout, TimeUnit.SECONDS)
@@ -38,8 +55,11 @@ object LoliconMirai : KotlinPlugin(JvmPluginDescription(id = "nya.xfy.LoliconMir
             } else
                 logger.info("色图代理未开启！")
         }.build()
-        CommandManager.registerCommand(Getter)
-        CommandManager.registerCommand(GetterWithKeyword)
-        CommandManager.registerCommand(Manager)
+        directClient = OkHttpClient.Builder().apply {
+            this.connectTimeout(NetworkConfig.connectTimeout, TimeUnit.SECONDS)
+            this.callTimeout(NetworkConfig.callTimeout, TimeUnit.SECONDS)
+            this.readTimeout(NetworkConfig.readTimeout, TimeUnit.SECONDS)
+            this.writeTimeout(NetworkConfig.writeTimeout, TimeUnit.SECONDS)
+        }.build()
     }
 }
