@@ -13,7 +13,6 @@ import nya.xfy.datas.Data.groupSetuMap
 
 object Manager : CompositeCommand(LoliconMirai, "manager", manager, description = "色图管理") {
 
-
     @SubCommand
     suspend fun MemberCommandSenderOnMessage.setuon() {
         groupSetuMap[subject.id] = true.also { subject.sendMessage(setuOnReply) }
