@@ -25,8 +25,8 @@
     noMatchResultReply: 你的xp好怪。。。
     //无法连接上LoliconApi时的回复
     connectionFailureReply: ''
-# NetworkConfig.yml //网络参数设置
-    connectTimeout: 60 //以下为超时设置 保持一致即可
+# NetworkConfig.yml //网络参数设置 代理使用http代理
+    connectTimeout: 60 //以下为超时设置
     callTimeout: 60 
     readTimeout: 60
     writeTimeout: 60
