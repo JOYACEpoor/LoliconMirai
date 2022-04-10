@@ -33,7 +33,7 @@ class Handler(private val subject: Group, private val bot: Bot, private val keyw
     suspend fun handle(mode: String = "tag") {
         when (groupSetuMap[subject.id]) {
             true -> {
-                val response = directClient.newCall(Request.Builder().url("https://api.lolicon.app/setu/v2?r18=${groupR18Map[subject.id]}&proxy=${proxyLink}&num=${(5..10).random()}&${mode}=${keyword}").build()).execute()
+                val response = directClient.newCall(Request.Builder().url("https://api.lolicon.app/setu/v2?r18=${groupR18Map[subject.id]}&proxy=${proxyLink}&num=${(5..10).random()}&${mode}=${keyword.replace("+","${mode}=")}").build()).execute()
                 when (response.isSuccessful) {
                     true -> {
                         logger.info("解析中\n${response.request}")
