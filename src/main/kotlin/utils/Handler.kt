@@ -11,8 +11,10 @@ import net.mamoe.mirai.contact.Group
 import net.mamoe.mirai.contact.nameCardOrNick
 import net.mamoe.mirai.message.data.*
 import net.mamoe.mirai.utils.ExternalResource.Companion.toExternalResource
+import nya.xfy.LoliconMirai
 import nya.xfy.LoliconMirai.customClient
 import nya.xfy.LoliconMirai.directClient
+import nya.xfy.LoliconMirai.log
 import nya.xfy.LoliconMirai.logger
 import nya.xfy.configs.NetworkConfig.proxyLink
 import nya.xfy.configs.RecallConfig
@@ -36,7 +38,7 @@ class Handler(private val subject: Group, private val bot: Bot, private val keyw
                 val response = directClient.newCall(Request.Builder().url("https://api.lolicon.app/setu/v2?r18=${groupR18Map[subject.id]}&proxy=${proxyLink}&num=${(5..10).random()}&${mode}=${keyword.replace("+","&${mode}=")}").build()).execute()
                 when (response.isSuccessful) {
                     true -> {
-                        logger.info("解析中\n${response.request}")
+                        log("解析中\n${response.request}")
                         val loliconResponse: LoliconResponse = Json.decodeFromString(response.body!!.string())
                         when (loliconResponse.data.isNotEmpty()) {
                             true -> subject.sendMessage(RawForwardMessage(responseHandler(loliconResponse)).render(object : ForwardMessage.DisplayStrategy {
@@ -66,7 +68,7 @@ class Handler(private val subject: Group, private val bot: Bot, private val keyw
                 for (item in loliconResponse.data) {
                     launch(Dispatchers.IO) {
                         val response = customClient.newCall(Request.Builder().url(item.urls.original).header("referer", "https://www.pixiv.net/").build()).execute()
-                        logger.info("PID: ${item.pid}获取中")
+                        log("PID: ${item.pid}获取中")
                         try {
                             when (response.isSuccessful) {
                                 true -> this@apply.add(getForwardMessageNode(subject.uploadImage(response.body!!.byteStream().toExternalResource().toAutoCloseable())))
@@ -77,7 +79,7 @@ class Handler(private val subject: Group, private val bot: Bot, private val keyw
                         } finally {
                             response.close()
                         }
-                        logger.info("PID: ${item.pid}上传完毕")
+                        log("PID: ${item.pid}上传完毕")
                     }
                 }
             }

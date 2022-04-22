@@ -49,11 +49,11 @@ object LoliconMirai : KotlinPlugin(JvmPluginDescription(id = "nya.xfy.LoliconMir
             this.writeTimeout(NetworkConfig.writeTimeout, TimeUnit.SECONDS)
             if (NetworkConfig.proxySwitch) {
                 this.proxy(Proxy(Proxy.Type.HTTP, InetSocketAddress(NetworkConfig.proxyAddress, NetworkConfig.proxyPort)))
-                logger.info("色图代理已开启！")
-                logger.info("代理地址：${NetworkConfig.proxyAddress}")
-                logger.info("代理端口：${NetworkConfig.proxyPort}")
+                log("色图代理已开启！", false)
+                log("代理地址：${NetworkConfig.proxyAddress}", false)
+                log("代理端口：${NetworkConfig.proxyPort}", false)
             } else
-                logger.info("色图代理未开启！")
+                log("色图代理未开启！", false)
         }.build()
         directClient = OkHttpClient.Builder().apply {
             this.connectTimeout(NetworkConfig.connectTimeout, TimeUnit.SECONDS)
@@ -61,5 +61,12 @@ object LoliconMirai : KotlinPlugin(JvmPluginDescription(id = "nya.xfy.LoliconMir
             this.readTimeout(NetworkConfig.readTimeout, TimeUnit.SECONDS)
             this.writeTimeout(NetworkConfig.writeTimeout, TimeUnit.SECONDS)
         }.build()
+    }
+
+    internal fun log(msg: String, verbose: Boolean = true) {
+        if (verbose && !CommandConfig.verbose) {
+            return
+        }
+        logger.info(msg)
     }
 }
