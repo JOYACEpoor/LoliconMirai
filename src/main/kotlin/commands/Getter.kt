@@ -10,8 +10,8 @@ import java.util.*
 object Getter : SimpleCommand(LoliconMirai, "random", random, description = "获取随机色图") {
     @Handler
     suspend fun MemberCommandSenderOnMessage.handle() {
-        val time = Date().time
+        val time = System.currentTimeMillis()
         Handler(subject, bot).handle()
-        LoliconMirai.logger.info("耗时: ${(Date().time - time)/1000}s")
+        LoliconMirai.logger.info("耗时: ${(System.currentTimeMillis() - time)/1000}s")
     }
 }
