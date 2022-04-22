@@ -19,7 +19,7 @@ object Manager : CompositeCommand(LoliconMirai, "manager", manager, description 
     @OptIn(ConsoleExperimentalApi::class)
     @SubCommand
     @Description("设置色图开启状态")
-    suspend fun MemberCommandSenderOnMessage.setu(@Name("on/off") state: Boolean) {
+    suspend fun MemberCommandSenderOnMessage.setu(@Name("on/off") state: Boolean = !(groupSetuMap[subject.id] ?: false)) {
         groupSetuMap[subject.id] = state
         subject.sendMessage(if (state) setuOnReply else setuOffReply)
     }
@@ -27,7 +27,7 @@ object Manager : CompositeCommand(LoliconMirai, "manager", manager, description 
     @OptIn(ConsoleExperimentalApi::class)
     @SubCommand
     @Description("设置 R18 模式")
-    suspend fun MemberCommandSenderOnMessage.r18(@Name("0/1/2") state: Int) {
+    suspend fun MemberCommandSenderOnMessage.r18(@Name("0/1/2") state: Int = if ((groupR18Map[subject.id] ?: 0) == 0) 2 else 0) {
         when (state) {
             0 -> {
                 groupR18Map[subject.id] = 0
