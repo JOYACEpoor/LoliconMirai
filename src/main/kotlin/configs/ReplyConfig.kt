@@ -14,4 +14,5 @@ object ReplyConfig : AutoSavePluginConfig("ReplyConfig") {
     val invalidR18Input: String by value("输入无效. 支持参数如下:\n0 - 关闭 R18 模式\n1 - 开始 R18 模式\n2 - R18 混合模式")
     val noResultReply by value("你的xp好怪。。。")
     val connectionFailureReply by value("连接Api失败")
+    val exceptionReply by value("获取色图时发生异常: <Exception>")
 }

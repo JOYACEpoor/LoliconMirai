@@ -20,11 +20,13 @@ import nya.xfy.configs.NetworkConfig.proxyLink
 import nya.xfy.configs.RecallConfig
 import nya.xfy.configs.ReplyConfig
 import nya.xfy.configs.ReplyConfig.connectionFailureReply
+import nya.xfy.configs.ReplyConfig.exceptionReply
 import nya.xfy.configs.ReplyConfig.noResultReply
 import nya.xfy.configs.ReplyConfig.refuseReply
 import nya.xfy.datas.Data.groupR18Map
 import nya.xfy.datas.Data.groupSetuMap
 import okhttp3.Request
+import java.io.IOException
 
 class Handler(private val subject: Group, private val bot: Bot, private val amount: Int, private val keyword: String = "") {
 
@@ -33,31 +35,42 @@ class Handler(private val subject: Group, private val bot: Bot, private val amou
 
     @OptIn(ExperimentalSerializationApi::class)
     suspend fun handle(mode: String = "tag") {
-        when (groupSetuMap[subject.id]) {
-            true -> {
-                val response = directClient.newCall(Request.Builder().url("https://api.lolicon.app/setu/v2?r18=${groupR18Map[subject.id]}&proxy=${proxyLink}&num=${amount}&${mode}=${keyword.replace("+","&${mode}=")}").build()).execute()
-                when (response.isSuccessful) {
-                    true -> {
-                        log("解析中\n${response.request}")
-                        val loliconResponse: LoliconResponse = Json.decodeFromString(response.body!!.string())
-                        when (loliconResponse.data.isNotEmpty()) {
-                            true -> subject.sendMessage(RawForwardMessage(responseHandler(loliconResponse)).render(object : ForwardMessage.DisplayStrategy {
-                                    override fun generateTitle(forward: RawForwardMessage) = "${amount}张${if (keyword.isEmpty()) "色图" else " $keyword"}"
-                                })).takeIf { RecallConfig.recallTime in 1..120 }?.recallIn((RecallConfig.recallTime * 1000).toLong())
-                            else -> when (mode) {
-                                "tag" -> handle("keyword")
-                                "keyword" -> when (loliconResponse.error == "") {
-                                    true -> sendMessage(noResultReply)
-                                    else -> sendMessage(loliconResponse.error)
+        try {
+            when (groupSetuMap[subject.id]) {
+                true -> {
+                    val response = directClient.newCall(Request.Builder()
+                        .url("https://api.lolicon.app/setu/v2?r18=${groupR18Map[subject.id]}&proxy=${proxyLink}&num=${amount}&${mode}=${
+                            keyword.replace("+",
+                                "&${mode}=")
+                        }").build()).execute()
+                    when (response.isSuccessful) {
+                        true -> {
+                            log("解析中\n${response.request}")
+                            val loliconResponse: LoliconResponse = Json.decodeFromString(response.body!!.string())
+                            when (loliconResponse.data.isNotEmpty()) {
+                                true -> subject.sendMessage(RawForwardMessage(responseHandler(loliconResponse)).render(
+                                    object : ForwardMessage.DisplayStrategy {
+                                        override fun generateTitle(forward: RawForwardMessage) =
+                                            "${amount}张${if (keyword.isEmpty()) "色图" else " $keyword"}"
+                                    })).takeIf { RecallConfig.recallTime in 1..120 }
+                                    ?.recallIn((RecallConfig.recallTime * 1000).toLong())
+                                else -> when (mode) {
+                                    "tag" -> handle("keyword")
+                                    "keyword" -> when (loliconResponse.error == "") {
+                                        true -> sendMessage(noResultReply)
+                                        else -> sendMessage(loliconResponse.error)
+                                    }
                                 }
                             }
                         }
+                        else -> sendMessage(connectionFailureReply)
                     }
-                    else -> sendMessage(connectionFailureReply)
+                    response.close()
                 }
-                response.close()
+                else -> sendMessage(refuseReply)
             }
-            else -> sendMessage(refuseReply)
+        } catch (e: IOException) {
+            sendMessage(exceptionReply.replace("<Exception>", e.toString()))
         }
     }
 
