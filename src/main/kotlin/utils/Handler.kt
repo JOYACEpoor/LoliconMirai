@@ -26,7 +26,7 @@ import nya.xfy.datas.Data.groupR18Map
 import nya.xfy.datas.Data.groupSetuMap
 import okhttp3.Request
 
-class Handler(private val subject: Group, private val bot: Bot, private val keyword: String = "") {
+class Handler(private val subject: Group, private val bot: Bot, private val amount: Int, private val keyword: String = "") {
 
     private suspend fun sendMessage(message: String) = subject.takeIf { message != "" }?.sendMessage(message)
     private fun getForwardMessageNode(message: Message): ForwardMessage.Node = ForwardMessage.Node(bot.id, 0, bot.nameCardOrNick, buildMessageChain { +message })
@@ -35,14 +35,14 @@ class Handler(private val subject: Group, private val bot: Bot, private val keyw
     suspend fun handle(mode: String = "tag") {
         when (groupSetuMap[subject.id]) {
             true -> {
-                val response = directClient.newCall(Request.Builder().url("https://api.lolicon.app/setu/v2?r18=${groupR18Map[subject.id]}&proxy=${proxyLink}&num=${(5..10).random()}&${mode}=${keyword.replace("+","&${mode}=")}").build()).execute()
+                val response = directClient.newCall(Request.Builder().url("https://api.lolicon.app/setu/v2?r18=${groupR18Map[subject.id]}&proxy=${proxyLink}&num=${amount}&${mode}=${keyword.replace("+","&${mode}=")}").build()).execute()
                 when (response.isSuccessful) {
                     true -> {
                         log("解析中\n${response.request}")
                         val loliconResponse: LoliconResponse = Json.decodeFromString(response.body!!.string())
                         when (loliconResponse.data.isNotEmpty()) {
                             true -> subject.sendMessage(RawForwardMessage(responseHandler(loliconResponse)).render(object : ForwardMessage.DisplayStrategy {
-                                    override fun generateTitle(forward: RawForwardMessage) = keyword
+                                    override fun generateTitle(forward: RawForwardMessage) = "${amount}张${if (keyword.isEmpty()) "色图" else " $keyword"}"
                                 })).takeIf { RecallConfig.recallTime in 1..120 }?.recallIn((RecallConfig.recallTime * 1000).toLong())
                             else -> when (mode) {
                                 "tag" -> handle("keyword")
