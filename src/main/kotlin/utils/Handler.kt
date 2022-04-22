@@ -48,12 +48,17 @@ class Handler(private val subject: Group, private val bot: Bot, private val amou
                             log("解析中\n${response.request}")
                             val loliconResponse: LoliconResponse = Json.decodeFromString(response.body!!.string())
                             when (loliconResponse.data.isNotEmpty()) {
-                                true -> subject.sendMessage(RawForwardMessage(responseHandler(loliconResponse)).render(
-                                    object : ForwardMessage.DisplayStrategy {
-                                        override fun generateTitle(forward: RawForwardMessage) =
-                                            "${amount}张${if (keyword.isEmpty()) "色图" else " $keyword"}"
-                                    })).takeIf { RecallConfig.recallTime in 1..120 }
-                                    ?.recallIn((RecallConfig.recallTime * 1000).toLong())
+                                true -> {
+                                    val actualAmount: Int
+                                    subject.sendMessage(RawForwardMessage(responseHandler(loliconResponse).also {
+                                        actualAmount = it.size
+                                    }).render(
+                                        object : ForwardMessage.DisplayStrategy {
+                                            override fun generateTitle(forward: RawForwardMessage) =
+                                                "${actualAmount}张${if (keyword.isEmpty()) "色图" else " $keyword"}"
+                                        })).takeIf { RecallConfig.recallTime in 1..120 }
+                                        ?.recallIn((RecallConfig.recallTime * 1000).toLong())
+                                }
                                 else -> when (mode) {
                                     "tag" -> handle("keyword")
                                     "keyword" -> when (loliconResponse.error == "") {
