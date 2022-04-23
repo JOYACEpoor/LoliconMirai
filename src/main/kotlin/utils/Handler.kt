@@ -21,6 +21,7 @@ import nya.xfy.configs.RecallConfig
 import nya.xfy.configs.ReplyConfig
 import nya.xfy.configs.ReplyConfig.connectionFailureReply
 import nya.xfy.configs.ReplyConfig.exceptionReply
+import nya.xfy.configs.ReplyConfig.invalidAmountInput
 import nya.xfy.configs.ReplyConfig.noResultReply
 import nya.xfy.configs.ReplyConfig.refuseReply
 import nya.xfy.datas.Data.groupR18Map
@@ -35,6 +36,10 @@ class Handler(private val subject: Group, private val bot: Bot, private val amou
 
     @OptIn(ExperimentalSerializationApi::class)
     suspend fun handle(mode: String = "tag") {
+        if (amount !in 1.. 50) {
+            subject.sendMessage(invalidAmountInput)
+            return
+        }
         try {
             when (groupSetuMap[subject.id]) {
                 true -> {
