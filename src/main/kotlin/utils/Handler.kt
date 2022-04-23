@@ -19,6 +19,7 @@ import nya.xfy.LoliconMirai.logger
 import nya.xfy.configs.NetworkConfig.proxyLink
 import nya.xfy.configs.RecallConfig
 import nya.xfy.configs.ReplyConfig
+import nya.xfy.configs.ReplyConfig.amountNotReach
 import nya.xfy.configs.ReplyConfig.connectionFailureReply
 import nya.xfy.configs.ReplyConfig.exceptionReply
 import nya.xfy.configs.ReplyConfig.invalidAmountInput
@@ -57,6 +58,10 @@ class Handler(private val subject: Group, private val bot: Bot, private val amou
                                     val actualAmount: Int
                                     subject.sendMessage(RawForwardMessage(responseHandler(loliconResponse).also {
                                         actualAmount = it.size
+                                        if (actualAmount < amount) {
+                                            it.add(0, getForwardMessageNode(PlainText(amountNotReach.replace("<Keyword>", keyword)
+                                                .replace("<ActualAmount>", actualAmount.toString()))))
+                                        }
                                     }).render(
                                         object : ForwardMessage.DisplayStrategy {
                                             override fun generateTitle(forward: RawForwardMessage) =
