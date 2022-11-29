@@ -14,6 +14,7 @@ data class LoliconResponse(val error: String, val data: List<Data>) {
         val height: Int,
         val tags: List<String>,
         val ext: String,
+        val aiType:String,
         val uploadDate: Long,
         val urls: Urls
     ) {
