@@ -11,11 +11,9 @@ import net.mamoe.mirai.contact.Group
 import net.mamoe.mirai.contact.nameCardOrNick
 import net.mamoe.mirai.message.data.*
 import net.mamoe.mirai.utils.ExternalResource.Companion.toExternalResource
-import nya.xfy.LoliconMirai
 import nya.xfy.LoliconMirai.customClient
 import nya.xfy.LoliconMirai.directClient
 import nya.xfy.LoliconMirai.log
-import nya.xfy.LoliconMirai.logger
 import nya.xfy.configs.NetworkConfig.proxyLink
 import nya.xfy.configs.RecallConfig
 import nya.xfy.configs.ReplyConfig
@@ -44,11 +42,7 @@ class Handler(private val subject: Group, private val bot: Bot, private val amou
         try {
             when (groupSetuMap[subject.id]) {
                 true -> {
-                    val response = directClient.newCall(Request.Builder()
-                        .url("https://api.lolicon.app/setu/v2?r18=${groupR18Map[subject.id]}&proxy=${proxyLink}&num=${amount}&${mode}=${
-                            keyword.replace("+",
-                                "&${mode}=")
-                        }").build()).execute()
+                    val response = directClient.newCall(Request.Builder().url("https://api.lolicon.app/setu/v2?r18=${groupR18Map[subject.id]}&proxy=${proxyLink}&num=${amount}&${mode}=${keyword.replace("+", "&${mode}=")}").build()).execute()
                     when (response.isSuccessful) {
                         true -> {
                             log("解析中\n${response.request}")
@@ -71,9 +65,9 @@ class Handler(private val subject: Group, private val bot: Bot, private val amou
                                 }
                                 else -> when (mode) {
                                     "tag" -> handle("keyword")
-                                    "keyword" -> when (loliconResponse.error == "") {
+                                    "keyword" -> when (loliconResponse.msg == "") {
                                         true -> sendMessage(noResultReply)
-                                        else -> sendMessage(loliconResponse.error)
+                                        else -> sendMessage(loliconResponse.msg)
                                     }
                                 }
                             }
@@ -95,15 +89,15 @@ class Handler(private val subject: Group, private val bot: Bot, private val amou
                 launch(Dispatchers.IO) { sendMessage(ReplyConfig.startSearchingReply) }
                 for (item in loliconResponse.data) {
                     launch(Dispatchers.IO) {
-                        val response = customClient.newCall(Request.Builder().url(item.urls.original).header("referer", "https://www.pixiv.net/").build()).execute()
+                        val response = customClient.newCall(Request.Builder().url(item.url).header("referer", "https://www.pixiv.net/").build()).execute()
                         log("PID: ${item.pid}获取中")
                         try {
                             when (response.isSuccessful) {
                                 true -> this@apply.add(getForwardMessageNode(subject.uploadImage(response.body!!.byteStream().toExternalResource().toAutoCloseable())))
-                                else -> this@apply.add(getForwardMessageNode(PlainText("哎呀，图片失踪了\n${item.urls.original}")))
+                                else -> this@apply.add(getForwardMessageNode(PlainText("哎呀，图片失踪了\n${item.url}")))
                             }
                         } catch (e: Exception) {
-                            this@apply.add(getForwardMessageNode(PlainText("哎呀，图片失踪了\n${e}\n${item.urls.original}")))
+                            this@apply.add(getForwardMessageNode(PlainText("哎呀，图片失踪了\n${e}\n${item.url}")))
                         } finally {
                             response.close()
                         }

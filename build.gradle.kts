@@ -1,8 +1,8 @@
 plugins {
-    val kotlinVersion = "1.5.30"
+    val kotlinVersion = "1.7.10"
     kotlin("jvm") version kotlinVersion
     kotlin("plugin.serialization") version kotlinVersion
-    id("net.mamoe.mirai-console") version "2.11.0-M1"
+    id("net.mamoe.mirai-console") version "2.14.0"
 }
 
 group = "nya.xfy"
@@ -11,20 +11,11 @@ version = "1.6.5"
 repositories {
     maven("https://maven.aliyun.com/repository/public")
     mavenCentral()
-    maven {
-        url = uri("https://maven.pkg.jetbrains.space/public/p/ktor/eap")
-        name = "ktor-eap"
-    }
-    maven {
-        url = uri("https://maven.pkg.jetbrains.space/public/p/ktor/eap")
-        name = "ktor-eap"
-    }
-    maven {
-        url = uri("https://maven.pkg.jetbrains.space/public/p/ktor/eap")
-        name = "ktor-eap"
-    }
-    maven {
-        url = uri("https://maven.pkg.jetbrains.space/public/p/ktor/eap")
-        name = "ktor-eap"
-    }
 }
+
+dependencies {
+    implementation("com.squareup.okhttp3:okhttp:4.10.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:1.3.3")
+}
+
+

@@ -1,7 +1,7 @@
 package nya.xfy.utils
 
 @kotlinx.serialization.Serializable
-data class LoliconResponse(val error: String, val data: List<Data>) {
+data class LoliconResponse(val code: Int, val msg: String, val count: Int, val data: List<Data>) {
     @kotlinx.serialization.Serializable
     data class Data(
         val pid: Int,
@@ -13,12 +13,6 @@ data class LoliconResponse(val error: String, val data: List<Data>) {
         val width: Int,
         val height: Int,
         val tags: List<String>,
-        val ext: String,
-        val aiType:String,
-        val uploadDate: Long,
-        val urls: Urls
-    ) {
-        @kotlinx.serialization.Serializable
-        data class Urls(val original: String)
-    }
+        val url: String
+    )
 }
