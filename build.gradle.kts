@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "nya.xfy"
-version = "1.6.5"
+version = "2.0.0"
 
 repositories {
     maven("https://maven.aliyun.com/repository/public")
